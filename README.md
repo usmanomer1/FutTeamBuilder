@@ -32,3 +32,20 @@ Furthermore, the application includes a **popularity feature** where users can *
 **Why is this project of interest to you?**
 - As a **gaming and football enthusiast**, I have a passion for FIFA. Each year, when the game is released, players seek reliable starter teams or aim to experiment with new player combinations. Manually adjusting teams can lead to high transfer fees, potential losses due to poor team performance, and wasted time. **FIFA Ultimate Team Manager** simplifies this process by providing optimized team suggestions based on user-defined budgets and preferences, saving both time and resources. The added popularity feature allows users to identify and adopt the most favored team builds within the community, further enhancing their gaming experience.
 
+### User Stories
+
+- **As a user, I want to be able to create and post a new FIFA team** so that I can share my team composition with others.
+
+- **As a user, I want to be able to view a list of all posted teams** so that I can browse and compare different team setups.
+
+- **As a user, I want to be able to like my favorite team builds** so that I can express my preference for certain team configurations.
+
+- **As a user, I want to be able to search for teams based on my budget, desired players, average rating, and chemistry score** so that I can find a team that fits my specific preferences.
+
+- **As a user, I want to be able to view the popularity of each team based on the number of likes it has received** so that I can identify and choose the most favored team builds.
+
+- **As a user, I want to be able to filter teams based on specific player attributes or positions** so that I can find teams that match my playing style.
+
+- **As a user, I want to be able to rate and review posted teams** so that I can provide feedback to other users and help improve team selections.
+
+---
