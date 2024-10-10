@@ -137,7 +137,7 @@ public class TeamTest {
 
     // Neutralize position chemistry
     // Assuming position chemistry is already calculated separately
-    // Or adjust the calculateChemistry method to allow testing link chemistry independently
+    
 
     int totalChemistry = team.calculateChemistry();
 
