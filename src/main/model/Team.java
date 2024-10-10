@@ -82,6 +82,23 @@ public class Team {
         likes++;
     }
 
+     /**
+     * Checks if the team has a player with the given name.
+     *
+     * REQUIRES: playerName != null
+     * EFFECTS:
+     * Returns true if there is a player in the team whose name matches playerName (case-insensitive);
+     * otherwise, returns false.
+     */
+    public boolean hasPlayer(String playerName) {
+        for (Player player : players) {
+            if (player.getName().equalsIgnoreCase(playerName)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     /**
      * EFFECTS: Returns the number of likes.
      */
