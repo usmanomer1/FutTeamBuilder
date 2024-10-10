@@ -34,9 +34,10 @@ public class PositionCompatibility {
         compatibilityMap.put("LF", Arrays.asList("LF", "LW", "ST"));
     }
 
-    /**
-     * EFFECTS: Returns true if the current position is compatible with the preferred position.
-     */
+   /**
+ * REQUIRES: primaryPosition and otherPosition are not null
+ * EFFECTS: Returns true if the positions are compatible; false otherwise.
+ */
     public static boolean isCompatible(String preferredPosition, String currentPosition) {
         List<String> compatiblePositions = compatibilityMap.get(preferredPosition.toUpperCase());
         if (compatiblePositions != null) {
