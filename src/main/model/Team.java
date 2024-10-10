@@ -35,11 +35,18 @@ public class Team {
     }
 
     /**
+     * REQUIRES: that the player is in the team
      * MODIFIES: this
      * EFFECTS: Removes a player from the team.
      */
     public void removePlayer(Player player) {
-        players.remove(player);
+    
+            if (players.contains(player)) {
+                players.remove(player);
+            }
+            
+        
+        
     }
 
     /**
