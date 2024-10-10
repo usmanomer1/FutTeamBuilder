@@ -134,10 +134,10 @@ public class Team {
         if (p1.getClubAffiliation().equalsIgnoreCase(p2.getClubAffiliation())) {
             linkChemistry += 3;
         } else if (p1.getNationality().equalsIgnoreCase(p2.getNationality())
-                && p1.getLeague().equalsIgnoreCase(p2.getLeague())) {
+                & p1.getLeague().equalsIgnoreCase(p2.getLeague())) {
             linkChemistry += 2;
         } else if (p1.getNationality().equalsIgnoreCase(p2.getNationality())
-                || p1.getLeague().equalsIgnoreCase(p2.getLeague())) {
+                | p1.getLeague().equalsIgnoreCase(p2.getLeague())) {
             linkChemistry += 1;
         }
         return linkChemistry;

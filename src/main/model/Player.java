@@ -46,25 +46,17 @@ this.price = price;
         return name;
     }
 
-    public void setName(String name) {
-        this.name = name;
-    }
-
+  
     public String getNationality() {
         return nationality;
     }
 
-    public void setNationality(String nationality) {
-        this.nationality = nationality;
-    }
+ 
 
     public int getRating() {
         return rating;
     }
 
-    public void setRating(int rating) {
-        this.rating = rating;
-    }
 
     public String getCurrentPosition() {
         return currentPosition;
@@ -100,49 +92,37 @@ this.price = price;
         return league;
     }
 
-    public void setPace(int pace) {
-        this.pace = pace;
-    }
+ 
 
     public int getPassing() {
         return passing;
     }
 
-    public void setPassing(int passing) {
-        this.passing = passing;
-    }
+   
 
     public int getShooting() {
         return shooting;
     }
 
-    public void setShooting(int shooting) {
-        this.shooting = shooting;
-    }
+  
 
     public int getWeakFoot() {
         return weakFoot;
     }
 
-    public void setWeakFoot(int weakFoot) {
-        this.weakFoot = weakFoot;
-    }
+  
 
     public String getClubAffiliation() {
         return clubAffiliation;
     }
 
-    public void setClubAffiliation(String clubAffiliation) {
-        this.clubAffiliation = clubAffiliation;
-    }
+  
 
     public int getPrice() {
         return price;
     }
 
-    public void setPrice(int price) {
-        this.price = price;
-    }
+   
 
     
 

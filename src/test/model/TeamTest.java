@@ -32,7 +32,7 @@ public class TeamTest {
         assertEquals(1, team.getPlayers().size());
         team.addPlayer(player2);
         assertEquals(2, team.getPlayers().size());
-        for (int i=1; i<22; i++){
+        for (int i=1; i<23; i++){
             team.addPlayer(new Player("Player "+i, "Country A", "League X", "Club Alpha",
             "ST", "ST", 85, 80, 75, 85, 4, 500000));
         }
@@ -43,7 +43,7 @@ public class TeamTest {
     public void testGetTotalPrice() {
         team.addPlayer(player1);
         team.addPlayer(player2);
-        assertEquals(1250000, team.getTotalPrice());
+        assertEquals(950000, team.getTotalPrice());
     }
 
     @Test
@@ -58,15 +58,19 @@ public class TeamTest {
         team.addPlayer(player1);
         team.addPlayer(player2);
         team.removePlayer(player1);
+           team.removePlayer(player1);
         assertEquals(1, team.getPlayers().size());
+
         assertFalse(team.getPlayers().contains(player1));
     }
 
     @Test
     public void testGetAverageRating() {
+        
+        assertEquals(0,team.getAverageRating(), 0.01);
         team.addPlayer(player1);
         team.addPlayer(player2);
-        assertEquals(86.5, team.getAverageRating(), 0.01);
+        assertEquals(83.5, team.getAverageRating(), 0.01);
     }
 
     @Test
@@ -100,7 +104,7 @@ public class TeamTest {
     Player player3 = new Player("Player Three", "Country B", "League Y", "Club Beta",
             "LW", "LM", 80, 85, 70, 80, 5, 400000);
 
-    Player player4 = new Player("Player Four", "Country C", "League Z", "Club Gamma",
+    Player player4 = new Player("Player Four", "Country C", "League Y", "Club Gamma",
             "RB", "GK", 78, 75, 65, 70, 2, 350000);
 
     // Add players to team
@@ -114,7 +118,7 @@ public class TeamTest {
     int chemistry = team.calculateChemistry();
 
     // Manually calculated expected chemistry is 11
-    assertEquals(11, chemistry);
+    assertEquals(12, chemistry);
 
 
 

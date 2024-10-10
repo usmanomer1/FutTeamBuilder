@@ -19,12 +19,14 @@ public class PlayerTests {
         assertEquals("Player One", player.getName());
         assertEquals("Country A", player.getNationality());
         assertEquals(85, player.getRating());
-        assertEquals("Midfielder", player.getCurrentPosition());
-        assertEquals(75, player.getPace());
-        assertEquals(80, player.getPassing());
-        assertEquals(70, player.getShooting());
-        assertEquals(3, player.getWeakFoot());
-        assertEquals("Club A", player.getClubAffiliation());
+        assertEquals("ST", player.getCurrentPosition());
+        assertEquals(80, player.getPace());
+        assertEquals(75, player.getPassing());
+        assertEquals(85, player.getShooting());
+        assertEquals(4, player.getWeakFoot());
+        assertEquals("League X", player.getLeague());
+        assertEquals("ST", player.getPreferredPosition());
+        assertEquals("Club Alpha", player.getClubAffiliation());
         assertEquals(500000, player.getPrice());
     }
 
@@ -42,8 +44,11 @@ public void testIsPositionCompatible() {
     player.setPreferredPosition("ST");
     player.setCurrentPosition("CF");
     assertTrue(player.isPositionCompatible());
-
     player.setCurrentPosition("GK");
     assertFalse(player.isPositionCompatible());
+
+    player.setPreferredPosition("BOGUS");
+    assertFalse(player.isPositionCompatible());
+    
 }
 }

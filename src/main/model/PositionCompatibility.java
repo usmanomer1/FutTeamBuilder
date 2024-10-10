@@ -14,7 +14,7 @@ public class PositionCompatibility {
     private static final Map<String, List<String>> compatibilityMap = new HashMap<>();
 
     static {
-        // Initialize the compatibility map
+ 
         compatibilityMap.put("GK", Arrays.asList("GK"));
         compatibilityMap.put("RB", Arrays.asList("RB", "RWB", "CB"));
         compatibilityMap.put("RWB", Arrays.asList("RWB", "RB", "RM"));
