@@ -88,4 +88,58 @@ public class Team {
     public List<Player> getPlayers() {
         return new ArrayList<>(players);
     }
+ 
+ 
+    // EFFECTS: Returns the total chemistry of the team.
+    public int calculateChemistry() {
+        int chemistry = 0;
+
+        // Position chemistry
+        for (Player player : players) {
+            if (player.isInPreferredPosition()) {
+                chemistry += 5; // Full chemistry for correct position
+            } else if (player.isPositionCompatible()) {
+                chemistry += 2; // Partial chemistry for compatible position
+            } else {
+                chemistry -= 3; // Penalty for incorrect position
+            }
+        }
+
+        // Link chemistry between players
+        for (int i = 0; i < players.size(); i++) {
+            Player p1 = players.get(i);
+            for (int j = i + 1; j < players.size(); j++) {
+                Player p2 = players.get(j);
+
+                int linkChemistry = calculateLinkChemistry(p1, p2);
+                chemistry += linkChemistry;
+            }
+        }
+
+        return chemistry;
+    }
+
+    /**
+     * EFFECTS: Calculates chemistry between two players based on shared attributes.
+     */
+    private int calculateLinkChemistry(Player p1, Player p2) {
+        int linkChemistry = 0;
+        if (p1.getClubAffiliation().equalsIgnoreCase(p2.getClubAffiliation())) {
+            linkChemistry += 3;
+        } else if (p1.getNationality().equalsIgnoreCase(p2.getNationality())
+                && p1.getLeague().equalsIgnoreCase(p2.getLeague())) {
+            linkChemistry += 2;
+        } else if (p1.getNationality().equalsIgnoreCase(p2.getNationality())
+                || p1.getLeague().equalsIgnoreCase(p2.getLeague())) {
+            linkChemistry += 1;
+        }
+        return linkChemistry;
+    }
+
+    
+    
+
+
+
+
 }
