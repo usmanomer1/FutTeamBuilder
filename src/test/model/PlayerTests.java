@@ -10,7 +10,8 @@ public class PlayerTests {
 
     @BeforeEach
     public void setUp() {
-        player = new Player("Player One", "Country A", 85, "Midfielder", 75, 80, 70, 3, "Club A", 500000);
+       player = new Player("Player One", "Country A", "League X", "Club Alpha",
+        "ST", "ST", 85, 80, 75, 85, 4, 500000);
     }
 
     @Test
@@ -18,7 +19,7 @@ public class PlayerTests {
         assertEquals("Player One", player.getName());
         assertEquals("Country A", player.getNationality());
         assertEquals(85, player.getRating());
-        assertEquals("Midfielder", player.getPosition());
+        assertEquals("Midfielder", player.getCurrentPosition());
         assertEquals(75, player.getPace());
         assertEquals(80, player.getPassing());
         assertEquals(70, player.getShooting());
@@ -26,4 +27,23 @@ public class PlayerTests {
         assertEquals("Club A", player.getClubAffiliation());
         assertEquals(500000, player.getPrice());
     }
+
+    @Test
+public void testIsInPreferredPosition() {
+    player.setCurrentPosition("ST");
+    assertTrue(player.isInPreferredPosition());
+
+    player.setCurrentPosition("CF");
+    assertFalse(player.isInPreferredPosition());
+}
+
+@Test
+public void testIsPositionCompatible() {
+    player.setPreferredPosition("ST");
+    player.setCurrentPosition("CF");
+    assertTrue(player.isPositionCompatible());
+
+    player.setCurrentPosition("GK");
+    assertFalse(player.isPositionCompatible());
+}
 }
