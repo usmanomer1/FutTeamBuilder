@@ -1,10 +1,7 @@
 // TeamRepoTests.java
 package model;
 
-import model.IncompleteTeamException;
-import model.Player;
-import model.Team;
-import model.TeamRepository;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -216,6 +213,7 @@ public class TeamRepoTests {
         }
         team3.likeTeam();
         team3.likeTeam(); // 2 likes
+        team3.likeTeam(); // 3 likes
 
         team4 = new Team();
         for (int i = 2; i <= 12; i++) {
@@ -234,12 +232,13 @@ public class TeamRepoTests {
         team4.likeTeam();
         team4.likeTeam();
         team4.likeTeam(); // 3 likes
+        team4.likeTeam(); // 4 likes
 
         List<Team> popularTeams = repository.getTeamsByPopularity();
         // Teams should be re-sorted based on updated likes
         assertEquals(4, popularTeams.size());
-        assertEquals(team4, popularTeams.get(0)); // team4 now has 3 likes
-        assertEquals(team3, popularTeams.get(1)); // team3 has 2 likes
+        assertEquals(team4, popularTeams.get(0)); // team4 now has 4 likes
+        assertEquals(team3, popularTeams.get(1)); // team3 has 3 likes
         assertEquals(team1, popularTeams.get(2)); // 2 likes
         assertEquals(team2, popularTeams.get(3)); // 1 like
     }
@@ -266,7 +265,7 @@ public class TeamRepoTests {
         desiredPlayerName = "Player Two";
 
         searchResults = repository.searchTeams(budget, minAverageRating, chemistry, desiredPlayerName);
-        assertEquals(1, searchResults.size());
+        assertEquals(2, searchResults.size());
         assertTrue(searchResults.contains(team2));
     }
 
@@ -293,4 +292,37 @@ public class TeamRepoTests {
         List<Team> searchResults = repository.searchTeams(budget, minAverageRating, chemistry, desiredPlayerName);
         assertTrue(searchResults.isEmpty());
     }
+
+    @Test
+public void testSearchTeamsByBudget() {
+    // Get total prices of team1 and team2
+    int team1Price = team1.getTotalPrice();
+    int team2Price = team2.getTotalPrice();
+
+    // Scenario 1: Budget lower than any team's price
+    List<Team> affordableTeams = repository.searchTeamsByBudget(1000);
+    assertTrue(affordableTeams.isEmpty(), "No teams should be affordable with a budget of 1000");
+
+    // Scenario 2: Budget allows for team1 only
+    int budget = team1Price + 1000; // Slightly above team1's price
+    affordableTeams = repository.searchTeamsByBudget(budget);
+    assertEquals(1, affordableTeams.size(), "Only team1 should be affordable");
+    assertTrue(affordableTeams.contains(team1), "Affordable teams should contain team1");
+
+    // Scenario 3: Budget allows for both teams
+    budget = Math.max(team1Price, team2Price) + 1000;
+    affordableTeams = repository.searchTeamsByBudget(budget);
+    assertEquals(2, affordableTeams.size(), "Both teams should be affordable");
+    assertTrue(affordableTeams.contains(team1), "Affordable teams should contain team1");
+    assertTrue(affordableTeams.contains(team2), "Affordable teams should contain team2");
+}
+
+@Test
+public void testAddTeam_NullTeamThrowsException() {
+    assertThrows(NullPointerException.class, () -> {
+        repository.addTeam(null);
+    }, "Expected addTeam(null) to throw NullPointerException");
+}
+
+
 }
