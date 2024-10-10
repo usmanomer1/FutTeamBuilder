@@ -20,9 +20,9 @@ public class TeamTest {
     @BeforeEach
     public void setUp() {
         team = new Team();
-         player1 = new Player("Player One", "Country A", "League X", "Club Alpha",
+        player1 = new Player("Player One", "Country A", "League X", "Club Alpha",
             "ST", "ST", 85, 80, 75, 85, 4, 500000);
-         player2 = new Player("Player Two", "Country A", "League X", "Club Beta",
+        player2 = new Player("Player Two", "Country A", "League X", "Club Beta",
             "CM", "CDM", 82, 70, 80, 65, 3, 450000);
     }
 
@@ -32,9 +32,9 @@ public class TeamTest {
         assertEquals(1, team.getPlayers().size());
         team.addPlayer(player2);
         assertEquals(2, team.getPlayers().size());
-        for (int i=1; i<23; i++){
-            team.addPlayer(new Player("Player "+i, "Country A", "League X", "Club Alpha",
-            "ST", "ST", 85, 80, 75, 85, 4, 500000));
+        for (int i = 1;i < 23; i++) {
+            team.addPlayer(new Player("Player " + i, "Country A", "League X", "Club Alpha",
+                    "ST", "ST", 85, 80, 75, 85, 4, 500000));
         }
         assertEquals(23, team.getPlayers().size());
     }
@@ -58,7 +58,7 @@ public class TeamTest {
         team.addPlayer(player1);
         team.addPlayer(player2);
         team.removePlayer(player1);
-           team.removePlayer(player1);
+        team.removePlayer(player1);
         assertEquals(1, team.getPlayers().size());
 
         assertFalse(team.getPlayers().contains(player1));
@@ -95,30 +95,30 @@ public class TeamTest {
        
 
     // Create players
-    Player player1 = new Player("Player One", "Country A", "League X", "Club Alpha",
-            "ST", "ST", 85, 80, 75, 85, 4, 500000);
+        Player player1 = new Player("Player One", "Country A", "League X", "Club Alpha",
+                "ST", "ST", 85, 80, 75, 85, 4, 500000);
 
-    Player player2 = new Player("Player Two", "Country A", "League X", "Club Beta",
-            "CM", "CDM", 82, 70, 80, 65, 3, 450000);
+        Player player2 = new Player("Player Two", "Country A", "League X", "Club Beta",
+                "CM", "CDM", 82, 70, 80, 65, 3, 450000);
 
-    Player player3 = new Player("Player Three", "Country B", "League Y", "Club Beta",
-            "LW", "LM", 80, 85, 70, 80, 5, 400000);
+        Player player3 = new Player("Player Three", "Country B", "League Y", "Club Beta",
+                "LW", "LM", 80, 85, 70, 80, 5, 400000);
 
-    Player player4 = new Player("Player Four", "Country C", "League Y", "Club Gamma",
-            "RB", "GK", 78, 75, 65, 70, 2, 350000);
+        Player player4 = new Player("Player Four", "Country C", "League Y", "Club Gamma",
+                 "RB", "GK", 78, 75, 65, 70, 2, 350000);
 
     // Add players to team
-    Team team = new Team();
-    team.addPlayer(player1);
-    team.addPlayer(player2);
-    team.addPlayer(player3);
-    team.addPlayer(player4);
+        Team team = new Team();
+        team.addPlayer(player1);
+        team.addPlayer(player2);
+        team.addPlayer(player3);
+        team.addPlayer(player4);
 
     // Calculate chemistry
-    int chemistry = team.calculateChemistry();
+        int chemistry = team.calculateChemistry();
 
     // Manually calculated expected chemistry is 11
-    assertEquals(12, chemistry);
+        assertEquals(12, chemistry);
 
 
 
@@ -127,33 +127,33 @@ public class TeamTest {
     @Test
     public void testLinkChemistry() {
      
-    Player player1 = new Player("Player One", "Country A", "League X", "Club Alpha",
-            "ST", "ST", 85, 80, 75, 85, 4, 500000);
-    Player player2 = new Player("Player Two", "Country B", "League Y", "Club Alpha",
-            "CM", "CM", 82, 70, 80, 65, 3, 450000);
-    Player player3 = new Player("Player Three", "Country C", "League Z", "Club Alpha",
-            "GK", "GK", 80, 85, 70, 80, 5, 400000);
+        Player player1 = new Player("Player One", "Country A", "League X", "Club Alpha",
+                "ST", "ST", 85, 80, 75, 85, 4, 500000);
+        Player player2 = new Player("Player Two", "Country B", "League Y", "Club Alpha",
+                "CM", "CM", 82, 70, 80, 65, 3, 450000);
+        Player player3 = new Player("Player Three", "Country C", "League Z", "Club Alpha",
+                "GK", "GK", 80, 85, 70, 80, 5, 400000);
 
-    Team team = new Team();
-    team.addPlayer(player1);
-    team.addPlayer(player2);
-    team.addPlayer(player3);
+        Team team = new Team();
+        team.addPlayer(player1);
+        team.addPlayer(player2);
+        team.addPlayer(player3);
 
     // Neutralize position chemistry
     // Assuming position chemistry is already calculated separately
     
 
-    int totalChemistry = team.calculateChemistry();
+        int totalChemistry = team.calculateChemistry();
 
     // Position Chemistry: 3 * 5 = 15 (since all are in preferred positions)
     // Link Chemistry: 3 pairs * 3 = 9
     // Total Chemistry: 15 (position) + 9 (link) = 24
 
     // Since we are focusing on link chemistry, we can subtract position chemistry
-    int expectedLinkChemistry = 9;
-    int actualLinkChemistry = totalChemistry - (3 * 5); // Subtract position chemistry
+        int expectedLinkChemistry = 9;
+        int actualLinkChemistry = totalChemistry - (3 * 5); // Subtract position chemistry
 
-    assertEquals(expectedLinkChemistry, actualLinkChemistry);
+        assertEquals(expectedLinkChemistry, actualLinkChemistry);
 
 
     }

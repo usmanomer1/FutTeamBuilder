@@ -1,4 +1,4 @@
-// Player.java
+
 package model;
 
 /**
@@ -25,22 +25,21 @@ public class Player {
      * MODIFIES: this
      * EFFECTS: Initializes a player with the given attributes.
      */
-    public Player(String name, String nationality, String league, String clubAffiliation,
-    String preferredPosition, String currentPosition, int rating,
-    int pace, int passing, int shooting, int weakFoot, int price) {
-this.name = name;
-this.nationality = nationality;
-this.league = league;
-this.clubAffiliation = clubAffiliation;
-this.preferredPosition = preferredPosition;
-this.currentPosition = currentPosition;
-this.rating = rating;
-this.pace = pace;
-this.passing = passing;
-this.shooting = shooting;
-this.weakFoot = weakFoot;
-this.price = price;
-}
+    public Player(String name, String nationality, String league, String clubAffiliation, String preferredPosition, 
+                  String currentPosition, int rating,int pace, int passing, int shooting, int weakFoot, int price) {
+        this.name = name;
+        this.nationality = nationality;
+        this.league = league;
+        this.clubAffiliation = clubAffiliation;
+        this.preferredPosition = preferredPosition;
+        this.currentPosition = currentPosition;
+        this.rating = rating;
+        this.pace = pace;
+        this.passing = passing;
+        this.shooting = shooting;
+        this.weakFoot = weakFoot;
+        this.price = price;
+    }
    
     public String getName() {
         return name;
@@ -85,9 +84,11 @@ this.price = price;
     public void setPreferredPosition(String preferredPosition) {
         this.preferredPosition = preferredPosition;
     }
+
     public int getPace() {
         return pace;
     }
+
     public String getLeague() {
         return league;
     }

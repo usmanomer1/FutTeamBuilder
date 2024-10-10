@@ -10,7 +10,7 @@ public class PlayerTests {
 
     @BeforeEach
     public void setUp() {
-       player = new Player("Player One", "Country A", "League X", "Club Alpha",
+        player = new Player("Player One", "Country A", "League X", "Club Alpha",
         "ST", "ST", 85, 80, 75, 85, 4, 500000);
     }
 
@@ -32,23 +32,23 @@ public class PlayerTests {
 
     @Test
 public void testIsInPreferredPosition() {
-    player.setCurrentPosition("ST");
-    assertTrue(player.isInPreferredPosition());
+        player.setCurrentPosition("ST");
+        assertTrue(player.isInPreferredPosition());
 
-    player.setCurrentPosition("CF");
-    assertFalse(player.isInPreferredPosition());
-}
+        player.setCurrentPosition("CF");
+        assertFalse(player.isInPreferredPosition());
+    }
 
-@Test
+    @Test
 public void testIsPositionCompatible() {
-    player.setPreferredPosition("ST");
-    player.setCurrentPosition("CF");
-    assertTrue(player.isPositionCompatible());
-    player.setCurrentPosition("GK");
-    assertFalse(player.isPositionCompatible());
+        player.setPreferredPosition("ST");
+        player.setCurrentPosition("CF");
+        assertTrue(player.isPositionCompatible());
+        player.setCurrentPosition("GK");
+        assertFalse(player.isPositionCompatible());
 
-    player.setPreferredPosition("BOGUS");
-    assertFalse(player.isPositionCompatible());
+        player.setPreferredPosition("BOGUS");
+        assertFalse(player.isPositionCompatible());
     
-}
+    }
 }

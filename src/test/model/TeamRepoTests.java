@@ -1,4 +1,4 @@
-// TeamRepoTests.java
+
 package model;
 
 
@@ -32,6 +32,7 @@ public class TeamRepoTests {
     private Player player12;
 
     @BeforeEach
+    @SuppressWarnings("methodlength")
     public void setUp() {
         repository = new TeamRepository();
 
@@ -92,6 +93,7 @@ public class TeamRepoTests {
         // Note: team3 and team4 are added in specific test methods when needed
     }
 
+    @SuppressWarnings("methodlength")
     // Helper method to get players by number
     private Player getPlayerByNumber(int number) {
         switch (number) {
@@ -125,14 +127,14 @@ public class TeamRepoTests {
     }
 
     @Test
-    public void testAddTeam_IncompleteTeamThrowsException() {
+    public void testAddTeamIncompleteTeamThrowsException() {
         assertThrows(IncompleteTeamException.class, () -> {
             repository.addTeam(incompleteTeam);
         });
     }
 
     @Test
-    public void testAddTeam_CompleteTeamAdded() {
+    public void testAddTeamCompleteTeamAdded() {
         team3 = new Team();
         for (int i = 1; i <= 12; i++) { // Adding 12 players
             team3.addPlayer(getPlayerByNumber(i));
@@ -148,7 +150,7 @@ public class TeamRepoTests {
     }
 
     @Test
-    public void testAddTeam_TeamWithExactly11Players() {
+    public void testAddTeamTeamWithExactly11Players() {
         team4 = new Team();
         for (int i = 1; i <= 11; i++) {
             team4.addPlayer(getPlayerByNumber(i));
@@ -204,8 +206,9 @@ public class TeamRepoTests {
         assertEquals(team4, popularTeams.get(3)); // 0 likes
     }
 
+    @SuppressWarnings("methodlength")
     @Test
-    public void testGetTeamsByPopularity_AfterLikesChange() {
+    public void testGetTeamsByPopularityAfterLikesChange() {
         // Adding team3 and team4 for this test
         team3 = new Team();
         for (int i = 1; i <= 11; i++) {
@@ -270,7 +273,7 @@ public class TeamRepoTests {
     }
 
     @Test
-    public void testSearchTeams_NoResults() {
+    public void testSearchTeamsNoResults() {
         // Criteria that no team meets
         int budget = 1000; // Too low
         double minAverageRating = 99.9; // Unrealistically high
@@ -282,7 +285,7 @@ public class TeamRepoTests {
     }
 
     @Test
-    public void testSearchTeams_PlayerNotInTeam() {
+    public void testSearchTeamsPlayerNotInTeam() {
         // Search for a player not in any team
         int budget = 10000000; // High budget to include all teams
         double minAverageRating = 0.0; // Low to include all teams
@@ -296,33 +299,33 @@ public class TeamRepoTests {
     @Test
 public void testSearchTeamsByBudget() {
     // Get total prices of team1 and team2
-    int team1Price = team1.getTotalPrice();
-    int team2Price = team2.getTotalPrice();
+        int team1Price = team1.getTotalPrice();
+        int team2Price = team2.getTotalPrice();
 
     // Scenario 1: Budget lower than any team's price
-    List<Team> affordableTeams = repository.searchTeamsByBudget(1000);
-    assertTrue(affordableTeams.isEmpty(), "No teams should be affordable with a budget of 1000");
+        List<Team> affordableTeams = repository.searchTeamsByBudget(1000);
+        assertTrue(affordableTeams.isEmpty(), "No teams should be affordable with a budget of 1000");
 
     // Scenario 2: Budget allows for team1 only
-    int budget = team1Price + 1000; // Slightly above team1's price
-    affordableTeams = repository.searchTeamsByBudget(budget);
-    assertEquals(1, affordableTeams.size(), "Only team1 should be affordable");
-    assertTrue(affordableTeams.contains(team1), "Affordable teams should contain team1");
+        int budget = team1Price + 1000; // Slightly above team1's price
+        affordableTeams = repository.searchTeamsByBudget(budget);
+        assertEquals(1, affordableTeams.size(), "Only team1 should be affordable");
+        assertTrue(affordableTeams.contains(team1), "Affordable teams should contain team1");
 
     // Scenario 3: Budget allows for both teams
-    budget = Math.max(team1Price, team2Price) + 1000;
-    affordableTeams = repository.searchTeamsByBudget(budget);
-    assertEquals(2, affordableTeams.size(), "Both teams should be affordable");
-    assertTrue(affordableTeams.contains(team1), "Affordable teams should contain team1");
-    assertTrue(affordableTeams.contains(team2), "Affordable teams should contain team2");
-}
+        budget = Math.max(team1Price, team2Price) + 1000;
+        affordableTeams = repository.searchTeamsByBudget(budget);
+        assertEquals(2, affordableTeams.size(), "Both teams should be affordable");
+        assertTrue(affordableTeams.contains(team1), "Affordable teams should contain team1");
+        assertTrue(affordableTeams.contains(team2), "Affordable teams should contain team2");
+    }
 
-@Test
-public void testAddTeam_NullTeamThrowsException() {
-    assertThrows(NullPointerException.class, () -> {
-        repository.addTeam(null);
-    }, "Expected addTeam(null) to throw NullPointerException");
-}
+    @Test
+    public void testAddTeamNullTeamThrowsException() {
+        assertThrows(NullPointerException.class, () -> {
+            repository.addTeam(null);
+        }, "Expected addTeam(null) to throw NullPointerException");
+    }
 
 
 }

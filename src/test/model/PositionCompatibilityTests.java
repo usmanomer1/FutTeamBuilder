@@ -8,27 +8,27 @@ import org.junit.jupiter.api.Test;
 public class PositionCompatibilityTests {
 
     @Test
-    public void testIsCompatible_SamePosition() {
+    public void testIsCompatibleSamePosition() {
         assertTrue(PositionCompatibility.isCompatible("ST", "ST"));
     }
 
     @Test
-    public void testIsCompatible_CompatiblePosition() {
+    public void testIsCompatibleCompatiblePosition() {
         assertTrue(PositionCompatibility.isCompatible("ST", "CF"));
     }
 
     @Test
-    public void testIsCompatible_IncompatiblePosition() {
+    public void testIsCompatibleIncompatiblePosition() {
         assertFalse(PositionCompatibility.isCompatible("ST", "GK"));
     }
 
     @Test
-    public void testIsCompatible_InvalidPosition() {
+    public void testIsCompatibleInvalidPosition() {
         assertFalse(PositionCompatibility.isCompatible("ST", "XYZ"));
     }
 
     @Test
-    public void testIsCompatible_CaseInsensitive() {
+    public void testIsCompatibleCaseInsensitive() {
         assertTrue(PositionCompatibility.isCompatible("st", "Cf"));
     }
 

@@ -1,4 +1,4 @@
-// TeamRepository.java
+
 package model;
 
 import java.util.ArrayList;
@@ -69,12 +69,16 @@ public class TeamRepository {
      * - The team's chemistry is greater than or equal to the given chemistry value.
      * - The team contains a player whose name matches desiredPlayerName (case-insensitive).
    */
+    
     public List<Team> searchTeams(int budget, double minAverageRating, int chemistry, String desiredPlayerName) {
         List<Team> result = new ArrayList<>();
         for (Team team : teams) {
-            if (team.getTotalPrice() <= budget &
-                    team.getAverageRating() >= minAverageRating &
-                    team.calculateChemistry() >= chemistry &
+            if (team.getTotalPrice() <= budget 
+                    &
+                    team.getAverageRating() >= minAverageRating 
+                    &
+                    team.calculateChemistry() >= chemistry 
+                    &
                     team.hasPlayer(desiredPlayerName)) {
                 result.add(team);
             }

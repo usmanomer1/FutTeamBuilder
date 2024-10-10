@@ -1,4 +1,4 @@
-// Team.java
+
 package model;
 
 import java.util.ArrayList;
@@ -41,9 +41,9 @@ public class Team {
      */
     public void removePlayer(Player player) {
     
-            if (players.contains(player)) {
-                players.remove(player);
-            }
+        if (players.contains(player)) {
+            players.remove(player);
+        }
             
         
         
