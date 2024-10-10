@@ -20,12 +20,16 @@ public class TeamRepository {
     }
 
     /**
-     * MODIFIES: this
-     * EFFECTS: Adds a team to the repository.
-     */
-    public void addTeam(Team team) {
+ * REQUIRES: team != null
+ * MODIFIES: this
+ * EFFECTS: If the team has at least 11 players, adds the team to the repository;
+ *          otherwise, does not add the team.
+ */
+
+    public void addTeam(Team team) throws IncompleteTeamException {
         
     }
+    
 
     /**
      * EFFECTS: Returns a list of all teams.
@@ -50,4 +54,13 @@ public class TeamRepository {
     
         return new ArrayList<>();
     }
+
+    
+    // EFFECTS: Searches for teams based on budget, minimum average rating and
+    // a player you might want to have on the team and then
+    // returns matching teams.
+    public List<Team> searchTeams(int budget, double minAverageRating, int chemistry,String desiredPlayerName) {
+        return new ArrayList<>();
+    }
+    
 }
