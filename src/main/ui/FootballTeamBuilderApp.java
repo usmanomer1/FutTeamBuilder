@@ -1,7 +1,6 @@
-package ui;
-
 // FootballTeamBuilderApp.java
 
+package ui;
 
 import model.IncompleteTeamException;
 import model.Player;
@@ -22,17 +21,18 @@ public class FootballTeamBuilderApp {
 
     /**
      * EFFECTS: Initializes the application by setting up the scanner, team, and repository.
+     *          Pre-populates the repository with sample teams.
      */
     public FootballTeamBuilderApp() {
         scanner = new Scanner(System.in);
         currentTeam = new Team();
         repository = new TeamRepository();
+
     }
 
-    /**
-     * EFFECTS: Runs the Football Team Builder application.
-     */
 
+     // EFFECTS: Runs the Football Team Builder application.
+     
     @SuppressWarnings("methodlength")
     public void run() {
         boolean keepGoing = true;
@@ -57,6 +57,12 @@ public class FootballTeamBuilderApp {
                     viewPopularTeams();
                     break;
                 case "5":
+                    viewTeamsByBudget();
+                    break;
+                case "6":
+                    viewAllTeams();
+                    break;
+                case "7":
                     keepGoing = false;
                     break;
                 default:
@@ -76,8 +82,10 @@ public class FootballTeamBuilderApp {
         System.out.println("2. View your current team");
         System.out.println("3. Search for teams");
         System.out.println("4. View popular teams");
-        System.out.println("5. Exit");
-        System.out.print("Please select an option (1-5): ");
+        System.out.println("5. View teams by budget");
+        System.out.println("6. View all teams in community");
+        System.out.println("7. Exit");
+        System.out.print("Please select an option (1-7): ");
     }
 
     /**
@@ -181,49 +189,6 @@ public class FootballTeamBuilderApp {
     }
 
     /**
-     * EFFECTS: Displays the current team to the user.
-     */
-    private void viewTeam() {
-        if (currentTeam.getPlayers().isEmpty()) {
-            System.out.println("\nYour current team is empty.");
-        } else {
-            System.out.println("\nYour Current Team:");
-            for (Player player : currentTeam.getPlayers()) {
-                System.out.println("- " + player.getName() + " (" + player.getCurrentPosition() + ")");
-            }
-            System.out.println("Total Price: " + currentTeam.getTotalPrice());
-            System.out.println("Average Rating: " + currentTeam.getAverageRating());
-            System.out.println("Team Chemistry: " + currentTeam.calculateChemistry());
-        }
-    }
-
-    /**
-     * EFFECTS: Allows the user to search for teams based on criteria.
-     */
-    private void searchTeams() {
-        System.out.println("\nSearch for Teams:");
-        int budget = promptForInteger("Enter maximum budget: ", 0, Integer.MAX_VALUE);
-        double minAverageRating = promptForDouble("Enter minimum average rating (0.0 - 100.0): ", 0.0, 100.0);
-        int chemistry = promptForInteger("Enter minimum team chemistry: ", 0, 100);
-        System.out.print("Enter desired player name (or leave blank): ");
-        String desiredPlayerName = scanner.nextLine().trim();
-
-        List<Team> matchingTeams = repository.searchTeams(budget, minAverageRating, chemistry, desiredPlayerName);
-
-        if (matchingTeams.isEmpty()) {
-            System.out.println("No teams found matching your criteria.");
-        } else {
-            System.out.println("Teams Found:");
-            for (Team team : matchingTeams) {
-                System.out.println("- Team with average rating: " + team.getAverageRating()
-                        + ", chemistry: " + team.calculateChemistry()
-                        + ", total price: " + team.getTotalPrice()
-                        + ", likes: " + team.getLikes());
-            }
-        }
-    }
-
-    /**
      * EFFECTS: Prompts the user for a double within a specified range.
      *
      * @param prompt the prompt message to display
@@ -255,7 +220,43 @@ public class FootballTeamBuilderApp {
     }
 
     /**
-     * EFFECTS: Displays the teams sorted by popularity.
+     * EFFECTS: Displays the current team to the user.
+     */
+    private void viewTeam() {
+        if (currentTeam.getPlayers().isEmpty()) {
+            System.out.println("\nYour current team is empty.");
+        } else {
+            System.out.println("\nYour Current Team:");
+            displayTeamDetails(currentTeam);
+        }
+    }
+
+    /**
+     * EFFECTS: Allows the user to search for teams based on criteria.
+     */
+    private void searchTeams() {
+        System.out.println("\nSearch for Teams:");
+        int budget = promptForInteger("Enter maximum budget: ", 0, Integer.MAX_VALUE);
+        double minAverageRating = promptForDouble("Enter minimum average rating (0.0 - 100.0): ", 0.0, 100.0);
+        int chemistry = promptForInteger("Enter minimum team chemistry (0-100): ", 0, 100);
+        System.out.print("Enter desired player name (or leave blank): ");
+        String desiredPlayerName = scanner.nextLine().trim();
+
+        List<Team> matchingTeams = repository.searchTeams(budget, minAverageRating, chemistry, desiredPlayerName);
+
+        if (matchingTeams.isEmpty()) {
+            System.out.println("No teams found matching your criteria.");
+        } else {
+            System.out.println("\nTeams Found:");
+            displayTeamsBrief(matchingTeams);
+
+            // Allow the user to select a team to view details
+            selectTeamFromList(matchingTeams);
+        }
+    }
+
+    /**
+     * EFFECTS: Displays the teams sorted by popularity and allows the user to select one to view details.
      */
     private void viewPopularTeams() {
         List<Team> popularTeams = repository.getTeamsByPopularity();
@@ -264,17 +265,158 @@ public class FootballTeamBuilderApp {
             System.out.println("\nNo teams available in the repository.");
         } else {
             System.out.println("\nTeams by Popularity:");
-            int rank = 1;
-            for (Team team : popularTeams) {
-                System.out.println(rank + ". Team with likes: " + team.getLikes()
-                        + ", average rating: " + team.getAverageRating()
-                        + ", chemistry: " + team.calculateChemistry());
-                rank++;
+            displayTeamsBrief(popularTeams);
+
+            // Allow the user to select a team to view details
+            selectTeamFromList(popularTeams);
+        }
+    }
+
+    /**
+     * EFFECTS: Allows the user to view teams based on budget alone.
+     */
+    private void viewTeamsByBudget() {
+        System.out.println("\nView Teams by Budget:");
+        int budget = promptForInteger("Enter maximum budget: ", 0, Integer.MAX_VALUE);
+
+        List<Team> affordableTeams = repository.searchTeamsByBudget(budget);
+
+        if (affordableTeams.isEmpty()) {
+            System.out.println("No teams found within your budget.");
+        } else {
+            System.out.println("\nTeams Within Budget:");
+            displayTeamsBrief(affordableTeams);
+
+            // Allow the user to select a team to view details
+            selectTeamFromList(affordableTeams);
+        }
+    }
+
+    /**
+     * EFFECTS: Displays all teams in the repository and allows the user to select one to view details.
+     */
+    private void viewAllTeams() {
+        List<Team> allTeams = repository.getAllTeams();
+
+        if (allTeams.isEmpty()) {
+            System.out.println("\nNo teams available in the repository.");
+        } else {
+            System.out.println("\nAll Teams in Community:");
+            displayTeamsBrief(allTeams);
+
+            // Allow the user to select a team to view details
+            selectTeamFromList(allTeams);
+        }
+    }
+
+    /**
+     * EFFECTS: Displays a brief list of teams with basic information.
+     *
+     * @param teams the list of teams to display
+     */
+    private void displayTeamsBrief(List<Team> teams) {
+        int index = 1;
+        for (Team team : teams) {
+            System.out.println(index + ". Average Rating: " + team.getAverageRating()
+                    + ", Chemistry: " + team.calculateChemistry()
+                    + ", Total Price: " + team.getTotalPrice()
+                    + ", Likes: " + team.getLikes());
+            index++;
+        }
+    }
+
+    /**
+     * EFFECTS: Allows the user to select a team from a list and view its details.
+     *
+     * @param teams the list of teams to select from
+     */
+    private void selectTeamFromList(List<Team> teams) {
+        System.out.print("\nEnter the number of the team to view details, or 0 to return to the main menu: ");
+        int selection = promptForTeamSelection(teams.size());
+
+        if (selection > 0) {
+            Team selectedTeam = teams.get(selection - 1);
+            viewTeamDetails(selectedTeam);
+        }
+    }
+
+    /**
+     * EFFECTS: Prompts the user to select a team number from the list.
+     *
+     * @param max the maximum valid selection number
+     * @return the selected team number
+     */
+    private int promptForTeamSelection(int max) {
+        int selection = -1;
+        boolean validInput = false;
+
+        while (!validInput) {
+            String input = scanner.nextLine().trim();
+
+            try {
+                selection = Integer.parseInt(input);
+                if (selection >= 0 && selection <= max) {
+                    validInput = true;
+                } else {
+                    System.out.print("Invalid selection. Please enter a number between 0 and " + max + ": ");
+                }
+            } catch (NumberFormatException e) {
+                System.out.print("Invalid input. Please enter a numeric value between 0 and " + max + ": ");
+            }
+        }
+
+        return selection;
+    }
+
+    /**
+     * EFFECTS: Displays detailed information about a team and allows the user to like the team.
+     *
+     * @param team the team to display
+     */
+    private void viewTeamDetails(Team team) {
+        boolean viewingTeam = true;
+
+        while (viewingTeam) {
+            System.out.println("\nTeam Details:");
+            displayTeamDetails(team);
+
+            System.out.println("\nOptions:");
+            System.out.println("1. Like this team");
+            System.out.println("2. Return to previous menu");
+            System.out.print("Please select an option (1-2): ");
+
+            String command = scanner.nextLine().trim();
+
+            switch (command) {
+                case "1":
+                    team.likeTeam();
+                    System.out.println("You have liked this team. Total likes: " + team.getLikes());
+                    break;
+                case "2":
+                    viewingTeam = false;
+                    break;
+                default:
+                    System.out.println("Invalid selection. Please choose a valid option.");
             }
         }
     }
 
+    /**
+     * EFFECTS: Displays detailed information about a team, including players and stats.
+     *
+     * @param team the team to display
+     */
+    private void displayTeamDetails(Team team) {
+        System.out.println("Players:");
+        for (Player player : team.getPlayers()) {
+            System.out.println("- " + player.getName() + " (" + player.getCurrentPosition() + ")");
+        }
+        System.out.println("Total Price: " + team.getTotalPrice());
+        System.out.println("Average Rating: " + team.getAverageRating());
+        System.out.println("Team Chemistry: " + team.calculateChemistry());
+        System.out.println("Likes: " + team.getLikes());
+    }
+
+  
    
-
 }
-
