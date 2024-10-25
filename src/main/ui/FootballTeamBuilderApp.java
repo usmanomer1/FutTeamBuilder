@@ -1,11 +1,12 @@
 // FootballTeamBuilderApp.java
-
 package ui;
 
-import model.IncompleteTeamException;
+
 import model.Player;
 import model.Team;
 import model.TeamRepository;
+import model.User;
+import model.UserManager;
 
 import java.util.List;
 import java.util.Scanner;
@@ -16,61 +17,105 @@ import java.util.Scanner;
 public class FootballTeamBuilderApp {
 
     private Scanner scanner;
-    private Team currentTeam;
+    private User currentUser;
     private TeamRepository repository;
+    private UserManager userManager;
 
     /**
-     * EFFECTS: Initializes the application by setting up the scanner, team, and repository.
-     *          Pre-populates the repository with sample teams.
+     * EFFECTS: Initializes the application by setting up the scanner, repository, and user manager.
      */
     public FootballTeamBuilderApp() {
         scanner = new Scanner(System.in);
-        currentTeam = new Team();
         repository = new TeamRepository();
+        userManager = new UserManager();
 
+        // Load users from file
+        userManager.loadUsers();
+
+        // Initialize community teams from users' listed teams
+        initializeCommunityTeams();
     }
 
-
-     // EFFECTS: Runs the Football Team Builder application.
-     
-    @SuppressWarnings("methodlength")
+    /**
+     * EFFECTS: Runs the Football Team Builder application.
+     */
     public void run() {
         boolean keepGoing = true;
 
         System.out.println("Welcome to the Football Team Builder!");
 
         while (keepGoing) {
-            displayMainMenu();
-            String command = scanner.nextLine().trim();
+            if (currentUser == null) {
+                displayAuthMenu();
+                String command = scanner.nextLine().trim();
 
-            switch (command) {
-                case "1":
-                    createTeam();
-                    break;
-                case "2":
-                    viewTeam();
-                    break;
-                case "3":
-                    searchTeams();
-                    break;
-                case "4":
-                    viewPopularTeams();
-                    break;
-                case "5":
-                    viewTeamsByBudget();
-                    break;
-                case "6":
-                    viewAllTeams();
-                    break;
-                case "7":
-                    keepGoing = false;
-                    break;
-                default:
-                    System.out.println("Invalid selection. Please choose a valid option.");
+                switch (command) {
+                    case "1":
+                        signUp();
+                        break;
+                    case "2":
+                        login();
+                        break;
+                    case "3":
+                        keepGoing = false;
+                        break;
+                    default:
+                        System.out.println("Invalid selection. Please choose a valid option.");
+                }
+            } else {
+                displayMainMenu();
+                String command = scanner.nextLine().trim();
+
+                switch (command) {
+                    case "1":
+                        createTeam();
+                        break;
+                    case "2":
+                        viewUserTeams();
+                        break;
+                    case "3":
+                        searchTeams();
+                        break;
+                    case "4":
+                        viewPopularTeams();
+                        break;
+                    case "5":
+                        logout();
+                        break;
+                    default:
+                        System.out.println("Invalid selection. Please choose a valid option.");
+                }
             }
         }
 
+        // Save users before exiting
+        userManager.saveUsers();
+
         System.out.println("Thank you for using the Football Team Builder. Goodbye!");
+    }
+
+    /**
+     * EFFECTS: Initializes community teams from users' listed teams.
+     */
+    private void initializeCommunityTeams() {
+        for (User user : userManager.getAllUsers()) {
+            for (Team team : user.getTeams()) {
+                if (team.isListed()) {
+                    repository.addTeamToCommunity(team);
+                }
+            }
+        }
+    }
+
+    /**
+     * EFFECTS: Displays the authentication menu options to the user.
+     */
+    private void displayAuthMenu() {
+        System.out.println("\nAuthentication Menu:");
+        System.out.println("1. Sign Up");
+        System.out.println("2. Login");
+        System.out.println("3. Exit");
+        System.out.print("Please select an option (1-3): ");
     }
 
     /**
@@ -79,31 +124,77 @@ public class FootballTeamBuilderApp {
     private void displayMainMenu() {
         System.out.println("\nMain Menu:");
         System.out.println("1. Create a new team");
-        System.out.println("2. View your current team");
+        System.out.println("2. View your teams");
         System.out.println("3. Search for teams");
         System.out.println("4. View popular teams");
-        System.out.println("5. View teams by budget");
-        System.out.println("6. View all teams in community");
-        System.out.println("7. Exit");
-        System.out.print("Please select an option (1-7): ");
+        System.out.println("5. Logout");
+        System.out.print("Please select an option (1-5): ");
+    }
+
+    /**
+     * EFFECTS: Handles user signup.
+     */
+    private void signUp() {
+        System.out.print("Enter a username: ");
+        String username = scanner.nextLine().trim();
+
+        System.out.print("Enter a password: ");
+        String password = scanner.nextLine().trim();
+
+        try {
+            currentUser = userManager.signUp(username, password);
+            System.out.println("Signup successful! You are now logged in as " + username + ".");
+            userManager.saveUsers();
+        } catch (IllegalArgumentException e) {
+            System.out.println("Signup failed: " + e.getMessage());
+        }
+    }
+
+    /**
+     * EFFECTS: Handles user login.
+     */
+    private void login() {
+        System.out.print("Enter your username: ");
+        String username = scanner.nextLine().trim();
+
+        System.out.print("Enter your password: ");
+        String password = scanner.nextLine().trim();
+
+        try {
+            currentUser = userManager.login(username, password);
+            System.out.println("Login successful! Welcome back, " + username + ".");
+        } catch (IllegalArgumentException e) {
+            System.out.println("Login failed: " + e.getMessage());
+        }
+    }
+
+    /**
+     * EFFECTS: Logs out the current user.
+     */
+    private void logout() {
+        System.out.println("Logged out from user: " + currentUser.getUsername());
+        currentUser = null;
     }
 
     /**
      * EFFECTS: Allows the user to create a new team by adding players.
      */
-    @SuppressWarnings("methodlength")
     private void createTeam() {
-        currentTeam = new Team();
+        System.out.print("Enter a name for your team: ");
+        String teamName = scanner.nextLine().trim();
+
+        Team team = new Team(teamName);
         System.out.println("\nCreating a new team...");
+
         boolean addingPlayers = true;
 
-        while (addingPlayers && currentTeam.getPlayers().size() < 11) {
+        while (addingPlayers && team.getPlayers().size() < 11) {
             System.out.println("\nAdd a player to your team:");
             Player player = createPlayer();
-            currentTeam.addPlayer(player);
+            team.addPlayer(player);
             System.out.println("Player added: " + player.getName());
 
-            if (currentTeam.getPlayers().size() < 11) {
+            if (team.getPlayers().size() < 11) {
                 System.out.print("Would you like to add another player? (yes/no): ");
                 String response = scanner.nextLine().trim().toLowerCase();
                 if (!response.equals("yes")) {
@@ -115,10 +206,23 @@ public class FootballTeamBuilderApp {
         }
 
         try {
-            repository.addTeam(currentTeam);
-            System.out.println("Your team has been saved to the repository.");
-        } catch (IncompleteTeamException e) {
-            System.out.println("Cannot save team: " + e.getMessage());
+            if (team.getPlayers().size() >= 11) {
+                System.out.print("Would you like to list this team to the community? (yes/no): ");
+                String response = scanner.nextLine().trim().toLowerCase();
+                if (response.equals("yes")) {
+                    team.setListed(true);
+                    repository.addTeamToCommunity(team);
+                    System.out.println("Your team has been listed to the community.");
+                } else {
+                    System.out.println("Your team has been saved as a draft.");
+                }
+                currentUser.addTeam(team);
+                userManager.saveUsers();
+            } else {
+                System.out.println("Cannot save team: Team must have at least 11 players.");
+            }
+        } catch (Exception e) {
+            System.out.println("Error saving team: " + e.getMessage());
         }
     }
 
@@ -189,148 +293,33 @@ public class FootballTeamBuilderApp {
     }
 
     /**
-     * EFFECTS: Prompts the user for a double within a specified range.
-     *
-     * @param prompt the prompt message to display
-     * @param min    the minimum acceptable value
-     * @param max    the maximum acceptable value
-     * @return the double entered by the user
+     * EFFECTS: Displays the user's teams.
      */
-    private double promptForDouble(String prompt, double min, double max) {
-        double value = 0.0;
-        boolean validInput = false;
+    private void viewUserTeams() {
+        List<Team> userTeams = currentUser.getTeams();
 
-        while (!validInput) {
-            System.out.print(prompt);
-            String input = scanner.nextLine().trim();
-
-            try {
-                value = Double.parseDouble(input);
-                if (value >= min && value <= max) {
-                    validInput = true;
-                } else {
-                    System.out.println("Please enter a value between " + min + " and " + max + ".");
-                }
-            } catch (NumberFormatException e) {
-                System.out.println("Invalid input. Please enter a numeric value.");
+        if (userTeams.isEmpty()) {
+            System.out.println("\nYou have no teams.");
+        } else {
+            System.out.println("\nYour Teams:");
+            int index = 1;
+            for (Team team : userTeams) {
+                String status = team.isListed() ? "Listed" : "Draft";
+                System.out.println(index + ". " + team.getName() + " (" + status + ")");
+                index++;
             }
-        }
-
-        return value;
-    }
-
-    /**
-     * EFFECTS: Displays the current team to the user.
-     */
-    private void viewTeam() {
-        if (currentTeam.getPlayers().isEmpty()) {
-            System.out.println("\nYour current team is empty.");
-        } else {
-            System.out.println("\nYour Current Team:");
-            displayTeamDetails(currentTeam);
-        }
-    }
-
-    /**
-     * EFFECTS: Allows the user to search for teams based on criteria.
-     */
-    private void searchTeams() {
-        System.out.println("\nSearch for Teams:");
-        int budget = promptForInteger("Enter maximum budget: ", 0, Integer.MAX_VALUE);
-        double minAverageRating = promptForDouble("Enter minimum average rating (0.0 - 100.0): ", 0.0, 100.0);
-        int chemistry = promptForInteger("Enter minimum team chemistry (0-100): ", 0, 100);
-        System.out.print("Enter desired player name (or leave blank): ");
-        String desiredPlayerName = scanner.nextLine().trim();
-
-        List<Team> matchingTeams = repository.searchTeams(budget, minAverageRating, chemistry, desiredPlayerName);
-
-        if (matchingTeams.isEmpty()) {
-            System.out.println("No teams found matching your criteria.");
-        } else {
-            System.out.println("\nTeams Found:");
-            displayTeamsBrief(matchingTeams);
 
             // Allow the user to select a team to view details
-            selectTeamFromList(matchingTeams);
+            selectUserTeamFromList(userTeams);
         }
     }
 
     /**
-     * EFFECTS: Displays the teams sorted by popularity and allows the user to select one to view details.
-     */
-    private void viewPopularTeams() {
-        List<Team> popularTeams = repository.getTeamsByPopularity();
-
-        if (popularTeams.isEmpty()) {
-            System.out.println("\nNo teams available in the repository.");
-        } else {
-            System.out.println("\nTeams by Popularity:");
-            displayTeamsBrief(popularTeams);
-
-            // Allow the user to select a team to view details
-            selectTeamFromList(popularTeams);
-        }
-    }
-
-    /**
-     * EFFECTS: Allows the user to view teams based on budget alone.
-     */
-    private void viewTeamsByBudget() {
-        System.out.println("\nView Teams by Budget:");
-        int budget = promptForInteger("Enter maximum budget: ", 0, Integer.MAX_VALUE);
-
-        List<Team> affordableTeams = repository.searchTeamsByBudget(budget);
-
-        if (affordableTeams.isEmpty()) {
-            System.out.println("No teams found within your budget.");
-        } else {
-            System.out.println("\nTeams Within Budget:");
-            displayTeamsBrief(affordableTeams);
-
-            // Allow the user to select a team to view details
-            selectTeamFromList(affordableTeams);
-        }
-    }
-
-    /**
-     * EFFECTS: Displays all teams in the repository and allows the user to select one to view details.
-     */
-    private void viewAllTeams() {
-        List<Team> allTeams = repository.getAllTeams();
-
-        if (allTeams.isEmpty()) {
-            System.out.println("\nNo teams available in the repository.");
-        } else {
-            System.out.println("\nAll Teams in Community:");
-            displayTeamsBrief(allTeams);
-
-            // Allow the user to select a team to view details
-            selectTeamFromList(allTeams);
-        }
-    }
-
-    /**
-     * EFFECTS: Displays a brief list of teams with basic information.
+     * EFFECTS: Allows the user to select one of their teams to view details.
      *
-     * @param teams the list of teams to display
+     * @param teams the list of user's teams
      */
-    private void displayTeamsBrief(List<Team> teams) {
-        int index = 1;
-        for (Team team : teams) {
-            System.out.println(index + ". Average Rating: " + team.getAverageRating()
-                    + ", Chemistry: " + team.calculateChemistry()
-                    + ", Total Price: " + team.getTotalPrice()
-                    + ", Likes: " + team.getLikes());
-            index++;
-        }
-    }
-
-    /**
-     * EFFECTS: Allows the user to select a team from a list and view its details.
-     *
-     * @param teams the list of teams to select from
-     */
-    private void selectTeamFromList(List<Team> teams) {
+    private void selectUserTeamFromList(List<Team> teams) {
         System.out.print("\nEnter the number of the team to view details, or 0 to return to the main menu: ");
         int selection = promptForTeamSelection(teams.size());
 
@@ -366,6 +355,93 @@ public class FootballTeamBuilderApp {
         }
 
         return selection;
+    }
+
+    /**
+     * EFFECTS: Allows the user to search for teams based on criteria.
+     */
+    private void searchTeams() {
+        System.out.println("\nSearch for Teams:");
+        int budget = promptForInteger("Enter maximum budget: ", 0, Integer.MAX_VALUE);
+        double minAverageRating = promptForDouble("Enter minimum average rating (0.0 - 100.0): ", 0.0, 100.0);
+        //int chemistry = promptForInteger("Enter minimum team chemistry (0-100): ", 0, 100);
+        System.out.print("Enter desired player name (or leave blank): ");
+        String desiredPlayerName = scanner.nextLine().trim();
+
+        List<Team> matchingTeams = repository.searchTeams(budget, minAverageRating, desiredPlayerName);
+
+        if (matchingTeams.isEmpty()) {
+            System.out.println("No teams found matching your criteria.");
+        } else {
+            System.out.println("\nTeams Found:");
+            displayTeamsBrief(matchingTeams);
+
+            // Allow the user to select a team to view details
+            selectTeamFromList(matchingTeams);
+        }
+    }
+
+    /**
+     * EFFECTS: Prompts the user for a double within a specified range.
+     *
+     * @param prompt the prompt message to display
+     * @param min    the minimum acceptable value
+     * @param max    the maximum acceptable value
+     * @return the double entered by the user
+     */
+    private double promptForDouble(String prompt, double min, double max) {
+        double value = 0.0;
+        boolean validInput = false;
+
+        while (!validInput) {
+            System.out.print(prompt);
+            String input = scanner.nextLine().trim();
+
+            try {
+                value = Double.parseDouble(input);
+                if (value >= min && value <= max) {
+                    validInput = true;
+                } else {
+                    System.out.println("Please enter a value between " + min + " and " + max + ".");
+                }
+            } catch (NumberFormatException e) {
+                System.out.println("Invalid input. Please enter a numeric value.");
+            }
+        }
+
+        return value;
+    }
+
+    /**
+     * EFFECTS: Displays a brief list of teams with basic information.
+     *
+     * @param teams the list of teams to display
+     */
+    private void displayTeamsBrief(List<Team> teams) {
+        int index = 1;
+        for (Team team : teams) {
+            System.out.println(index + ". " + team.getName()
+                    + " | Avg Rating: " + String.format("%.2f", team.getAverageRating())
+                    + ", Chemistry: " + team.calculateChemistry()
+                    + ", Total Price: " + team.getTotalPrice()
+                    + ", Likes: " + team.getLikes());
+            index++;
+        }
+    }
+
+    /**
+     * EFFECTS: Allows the user to select a team from a list and view its details.
+     *
+     * @param teams the list of teams to select from
+     */
+    private void selectTeamFromList(List<Team> teams) {
+        System.out.print("\nEnter the number of the team to view details, or 0 to return to the main menu: ");
+        int selection = promptForTeamSelection(teams.size());
+
+        if (selection > 0) {
+            Team selectedTeam = teams.get(selection - 1);
+            viewTeamDetails(selectedTeam);
+        }
     }
 
     /**
@@ -407,16 +483,38 @@ public class FootballTeamBuilderApp {
      * @param team the team to display
      */
     private void displayTeamDetails(Team team) {
+        System.out.println("Team Name: " + team.getName());
         System.out.println("Players:");
         for (Player player : team.getPlayers()) {
             System.out.println("- " + player.getName() + " (" + player.getCurrentPosition() + ")");
         }
         System.out.println("Total Price: " + team.getTotalPrice());
-        System.out.println("Average Rating: " + team.getAverageRating());
+        System.out.println("Average Rating: " + String.format("%.2f", team.getAverageRating()));
         System.out.println("Team Chemistry: " + team.calculateChemistry());
         System.out.println("Likes: " + team.getLikes());
     }
 
+    /**
+     * EFFECTS: Displays the teams sorted by popularity and allows the user to select one to view details.
+     */
+    private void viewPopularTeams() {
+        List<Team> popularTeams = repository.getTeamsByPopularity();
+
+        if (popularTeams.isEmpty()) {
+            System.out.println("\nNo teams available in the community.");
+        } else {
+            System.out.println("\nTeams by Popularity:");
+            displayTeamsBrief(popularTeams);
+
+            // Allow the user to select a team to view details
+            selectTeamFromList(popularTeams);
+        }
+    }
+
+    /**
+     * Main method to start the application.
+     *
+     * @param args command-line arguments (not used)
+     */
   
-   
 }

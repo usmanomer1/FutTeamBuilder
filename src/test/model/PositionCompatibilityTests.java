@@ -8,6 +8,11 @@ import org.junit.jupiter.api.Test;
 public class PositionCompatibilityTests {
 
     @Test
+    public void setup() {
+        new PositionCompatibility();
+    }
+
+    @Test
     public void testIsCompatibleSamePosition() {
         assertTrue(PositionCompatibility.isCompatible("ST", "ST"));
     }
