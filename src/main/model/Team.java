@@ -4,6 +4,9 @@ package model;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
 
 /**
  * Represents a FIFA Ultimate Team composed of players.
@@ -11,18 +14,58 @@ import java.util.List;
 public class Team {
    
 
-    private List<Player> players;
-    private int likes;
+   
+        private List<Player> players;
+        private int likes;
+        private boolean isListed;
+        private String name;
+      
+       
+    
+    
+        /**
+         * MODIFIES: this
+         * EFFECTS: Initializes an empty team with zero likes.
+         */
+        public Team(String name) {
+            this.players = new ArrayList<>();
+            this.likes = 0;
+            this.isListed = false;
+            this.name = name;
+        }
+         /**
+     * EFFECTS: Returns true if the team is listed in the community.
+     *
+     * @return true if listed, false if saved as draft
+     */
+    public boolean isListed() {
+        return isListed;
+    }
+
+    public void setLikes(int likes) {
+        this.likes = likes;
+    }
 
     /**
      * MODIFIES: this
-     * EFFECTS: Initializes an empty team with zero likes.
+     * EFFECTS: Sets the team's listing status.
+     *
+     * @param listed true to list the team, false to save as draft
      */
-    public Team() {
-        this.players = new ArrayList<>();
-        this.likes = 0;
+    public void setListed(boolean listed) {
+        isListed = listed;
     }
 
+    /**
+     * EFFECTS: Returns the name of the team.
+     *
+     * @return team name
+     */
+    public String getName() {
+        return name;
+    }
+
+    
    /**
      * REQUIRES: players.size() < 23
      * MODIFIES: this
@@ -139,6 +182,7 @@ public class Team {
                 chemistry += linkChemistry;
             }
         }
+ 
 
         return chemistry;
     }
@@ -159,6 +203,28 @@ public class Team {
         }
         return linkChemistry;
     }
+
+    public boolean isComplete() {
+        return players.size() >= 11;
+    }
+    
+
+     public JSONObject toJson() {
+        JSONObject json = new JSONObject();
+        json.put("name", name);
+        json.put("likes", likes);
+        json.put("isListed", isListed);
+
+        JSONArray playersArray = new JSONArray();
+        for (Player player : players) {
+            playersArray.put(player.toJson());
+        }
+        json.put("players", playersArray);
+
+        return json;
+    }
+    
+    
 
     
     
