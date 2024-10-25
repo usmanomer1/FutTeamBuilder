@@ -1,4 +1,4 @@
-
+// TeamRepository.java
 package model;
 
 import java.util.ArrayList;
@@ -9,44 +9,45 @@ import java.util.List;
  */
 public class TeamRepository {
 
-    private List<Team> teams;
+    private List<Team> communityTeams;
 
     /**
      * MODIFIES: this
-     * EFFECTS: Initializes an empty repository of teams.
+     * EFFECTS: Initializes an empty repository of community teams.
      */
     public TeamRepository() {
-        this.teams = new ArrayList<>();
+        this.communityTeams = new ArrayList<>();
     }
 
     /**
-     * MODIFIES: this
-     * EFFECTS: Adds a team to the repository.
+     * EFFECTS: Adds a team to the community repository if it is listed.
+     *
+     * @param team the team to add
      */
-    public void addTeam(Team team) throws IncompleteTeamException {
-        if (team == null) {
-            throw new NullPointerException("Team cannot be null.");
-        }
-        if (team.getPlayers().size() >= 11) {
-            teams.add(team);
-        } else {
-            throw new IncompleteTeamException("Team must have at least 11 players.");
+    public void addTeamToCommunity(Team team) {
+        if (team != null && team.isListed() && team.isComplete()) {
+            communityTeams.add(team);
         }
     }
+    
+    
 
     /**
-     * EFFECTS: Returns a list of all teams.
+     * EFFECTS: Returns a list of all community teams.
      */
-    public List<Team> getAllTeams() {
-        return new ArrayList<>(teams);
+    public List<Team> getAllCommunityTeams() {
+        return new ArrayList<>(communityTeams);
     }
 
     /**
-     * EFFECTS: Searches for teams based on budget and returns matching teams.
+     * EFFECTS: Searches community teams based on budget and returns matching teams.
+     *
+     * @param budget the maximum budget
+     * @return list of teams within the budget
      */
     public List<Team> searchTeamsByBudget(int budget) {
         List<Team> result = new ArrayList<>();
-        for (Team t : teams) {
+        for (Team t : communityTeams) {
             if (t.getTotalPrice() <= budget) {
                 result.add(t);
             }
@@ -55,31 +56,38 @@ public class TeamRepository {
     }
 
     /**
-     * EFFECTS: Returns teams sorted by likes in descending order.
+     * EFFECTS: Returns community teams sorted by likes in descending order.
+     *
+     * @return list of teams sorted by popularity
      */
     public List<Team> getTeamsByPopularity() {
-        teams.sort((t1, t2) -> t2.getLikes() - t1.getLikes());
-        return new ArrayList<>(teams);
+        communityTeams.sort((t1, t2) -> t2.getLikes() - t1.getLikes());
+        return new ArrayList<>(communityTeams);
     }
-    /* REQUIRES: desiredPlayerName != null
+
+    /**
      * EFFECTS:
-     * Returns a list of teams that satisfy the following conditions:
+     * Returns a list of community teams that satisfy the following conditions:
      * - The team's total price is less than or equal to the given budget.
      * - The team's average rating is greater than or equal to minAverageRating.
      * - The team's chemistry is greater than or equal to the given chemistry value.
      * - The team contains a player whose name matches desiredPlayerName (case-insensitive).
-   */
-    
-    public List<Team> searchTeams(int budget, double minAverageRating, int chemistry, String desiredPlayerName) {
+     *
+     * @param budget            the maximum budget
+     * @param minAverageRating  the minimum average rating
+     * @param chemistry         the minimum chemistry
+     * @param desiredPlayerName the desired player name (can be partial or empty)
+     * @return list of matching teams
+     */
+    public List<Team> searchTeams(int budget, double minAverageRating,  String desiredPlayerName) {
         List<Team> result = new ArrayList<>();
-        for (Team team : teams) {
-            if (team.getTotalPrice() <= budget 
-                    &
-                    team.getAverageRating() >= minAverageRating 
-                    &
-                    team.calculateChemistry() >= chemistry 
-                    &
-                    team.hasPlayer(desiredPlayerName)) {
+        for (Team team : communityTeams) {
+            boolean matchesBudget = team.getTotalPrice() <= budget;
+            boolean matchesRating = team.getAverageRating() >= minAverageRating;
+               //boolean matchesChemistry = team.calculateChemistry() >= chemistry;
+            boolean matchesPlayer = desiredPlayerName.isEmpty() | team.hasPlayer(desiredPlayerName);
+
+            if ( matchesBudget & matchesRating & matchesPlayer) {
                 result.add(team);
             }
         }
