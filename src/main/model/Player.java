@@ -126,7 +126,7 @@ public class Player {
     }
 
 
-     public JSONObject toJson() {
+    public JSONObject toJson() {
         JSONObject json = new JSONObject();
         json.put("name", name);
         json.put("nationality", nationality);

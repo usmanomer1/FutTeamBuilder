@@ -1,4 +1,5 @@
 package model;
+
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.spec.InvalidKeySpecException;
@@ -6,6 +7,9 @@ import java.util.Base64;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 
+/**
+ * Utility class for password hashing and verification.
+ */
 public class PasswordUtils {
     private static final int ITERATIONS = 65536;
     private static final int KEY_LENGTH = 256;
@@ -13,7 +17,9 @@ public class PasswordUtils {
     private static final SecureRandom RANDOM = new SecureRandom();
 
     // Private constructor to prevent instantiation
-    private PasswordUtils() {}
+    private PasswordUtils() {
+
+    }
 
     /**
      * Hashes the password using the provided SecretKeyFactory.
@@ -26,7 +32,8 @@ public class PasswordUtils {
         try {
             byte[] salt = getSalt();
             byte[] hash = pbkdf2(password.toCharArray(), salt, ITERATIONS, KEY_LENGTH, factory);
-            return ITERATIONS + ":" + Base64.getEncoder().encodeToString(salt) + ":" + Base64.getEncoder().encodeToString(hash);
+            return ITERATIONS + ":" + Base64.getEncoder().encodeToString(salt) + ":" 
+                + Base64.getEncoder().encodeToString(hash);
         } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
             throw new RuntimeException("Error hashing password", e);
         }
@@ -65,7 +72,9 @@ public class PasswordUtils {
             byte[] testHash = pbkdf2(password.toCharArray(), salt, iterations, hash.length * 8, factory);
            
             for (int i = 0; i < testHash.length; i++) {
-                if (testHash[i] != hash[i]) return false;
+                if (testHash[i] != hash[i]) {
+                    return false; 
+                }
             }
             return true;
         } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {

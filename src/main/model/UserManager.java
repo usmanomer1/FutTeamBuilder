@@ -1,4 +1,6 @@
 // UserManager.java
+
+
 package model;
 
 import persistence.JsonReader;
@@ -89,6 +91,7 @@ public class UserManager {
             writer.close();
             System.out.println("Users saved successfully.");
         } catch (IOException e) {
+            System.out.println("Error saving users to file.");
            
         }
     }
@@ -103,6 +106,7 @@ public class UserManager {
             this.users = loadedManager.users;
             System.out.println("Users loaded successfully.");
         } catch (IOException e) {
+            System.out.println("Error loading users from file.");
            
         }
     }

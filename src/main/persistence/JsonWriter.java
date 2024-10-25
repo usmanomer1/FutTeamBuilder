@@ -1,4 +1,5 @@
 // JsonWriter.java
+
 package persistence;
 
 import model.User;

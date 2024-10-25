@@ -1,4 +1,5 @@
-// TeamRepository.java
+
+
 package model;
 
 import java.util.ArrayList;
@@ -87,7 +88,7 @@ public class TeamRepository {
                //boolean matchesChemistry = team.calculateChemistry() >= chemistry;
             boolean matchesPlayer = desiredPlayerName.isEmpty() | team.hasPlayer(desiredPlayerName);
 
-            if ( matchesBudget & matchesRating & matchesPlayer) {
+            if (matchesBudget & matchesRating & matchesPlayer) {
                 result.add(team);
             }
         }

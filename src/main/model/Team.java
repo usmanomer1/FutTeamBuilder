@@ -15,10 +15,10 @@ public class Team {
    
 
    
-        private List<Player> players;
-        private int likes;
-        private boolean isListed;
-        private String name;
+    private List<Player> players;
+    private int likes;
+    private boolean isListed;
+    private String name;
       
        
     
@@ -27,17 +27,18 @@ public class Team {
          * MODIFIES: this
          * EFFECTS: Initializes an empty team with zero likes.
          */
-        public Team(String name) {
-            this.players = new ArrayList<>();
-            this.likes = 0;
-            this.isListed = false;
-            this.name = name;
-        }
+    public Team(String name) {
+        this.players = new ArrayList<>();
+        this.likes = 0;
+        this.isListed = false;
+        this.name = name;
+    }
          /**
      * EFFECTS: Returns true if the team is listed in the community.
      *
      * @return true if listed, false if saved as draft
      */
+    
     public boolean isListed() {
         return isListed;
     }
@@ -209,7 +210,7 @@ public class Team {
     }
     
 
-     public JSONObject toJson() {
+    public JSONObject toJson() {
         JSONObject json = new JSONObject();
         json.put("name", name);
         json.put("likes", likes);

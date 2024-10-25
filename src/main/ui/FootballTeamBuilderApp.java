@@ -1,4 +1,5 @@
 // FootballTeamBuilderApp.java
+
 package ui;
 
 
@@ -39,6 +40,8 @@ public class FootballTeamBuilderApp {
     /**
      * EFFECTS: Runs the Football Team Builder application.
      */
+    
+    @SuppressWarnings("methodlength")
     public void run() {
         boolean keepGoing = true;
 
@@ -179,6 +182,7 @@ public class FootballTeamBuilderApp {
     /**
      * EFFECTS: Allows the user to create a new team by adding players.
      */
+    @SuppressWarnings("methodlength")
     private void createTeam() {
         System.out.print("Enter a name for your team: ");
         String teamName = scanner.nextLine().trim();
