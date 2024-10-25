@@ -120,6 +120,53 @@ public class TeamTest {
     }
 
     @Test
+    public void testAddPlayer_WhenTeamHasLessThan23Players() {
+        // Arrange
+        Team team = new Team("Test Team");
+        Player newPlayer = new Player(
+            "Kylian Mbappé", "France", "Ligue 1", "Paris Saint-Germain",
+            "Forward", "Forward", 91, 97, 88, 86, 4, 1800000
+        );
+
+        // Precondition: Ensure team has fewer than 23 players
+        assertTrue(team.getPlayers().size() < 23, "Team should have less than 23 players before adding");
+        int initialSize = team.getPlayers().size();
+
+        // Act
+        team.addPlayer(newPlayer);
+
+        // Assert
+        assertTrue(team.getPlayers().contains(newPlayer), "New player should be added to the team");
+        int newSize = team.getPlayers().size();
+        assertEquals(initialSize + 1, newSize, "Team size should increase by one after adding a player");
+    }
+
+
+
+    @Test
+    public void testRemovePlayer_PlayerNotInTeam() {
+        // Arrange
+        Team team = new Team("Test Team");
+        Player playerNotInTeam = new Player(
+            "Lionel Messi", "Argentina", "Ligue 1", "Paris Saint-Germain",
+            "Forward", "Forward", 93, 85, 91, 95, 4, 1200000
+        );
+
+        // Precondition: Ensure the player is NOT in the team
+        assertFalse(team.getPlayers().contains(playerNotInTeam), "Player should not be in the team before removal");
+        int initialSize = team.getPlayers().size();
+
+        // Act
+        team.removePlayer(playerNotInTeam);
+
+        // Assert
+        // Since the player was not in the team, the team size should remain the same
+        int newSize = team.getPlayers().size();
+        assertEquals(initialSize, newSize, "Team size should remain the same when removing a non-existing player");
+        assertFalse(team.getPlayers().contains(playerNotInTeam), "Player should still not be in the team after removal attempt");
+    }
+
+    @Test
     public void testLinkChemistry() {
         // Players with shared club affiliation
         Player player3 = new Player("Player Three", "Country C", "League Z", "Club Alpha",
@@ -156,5 +203,38 @@ public class TeamTest {
         team.addPlayer(player1);
         assertTrue(team.hasPlayer("Player One"));
         assertFalse(team.hasPlayer("Player Two"));
+    }
+
+    @Test
+    public void testAddPlayer_WhenTeamHas23Players() {
+        // Arrange
+        Team team = new Team("Full Team");
+
+        // Add 23 players to the team
+        for (int i = 1; i <= 23; i++) {
+            Player player = new Player(
+                "Player " + i, "Country", "League", "Club",
+                "Position", "Position", 80, 80, 80, 80, 3, 100000
+            );
+            team.addPlayer(player);
+        }
+
+        // Precondition: Ensure the team has exactly 23 players
+        assertEquals(23, team.getPlayers().size(), "Team should have 23 players before adding");
+
+        // Create a new player to attempt to add
+        Player newPlayer = new Player(
+            "Extra Player", "Country", "League", "Club",
+            "Position", "Position", 80, 80, 80, 80, 3, 100000
+        );
+
+        // Act
+        team.addPlayer(newPlayer);
+
+        // Assert
+        // The new player should not be added to the team
+        assertFalse(team.getPlayers().contains(newPlayer), "New player should not be added to the full team");
+        // Team size should remain 23
+        assertEquals(23, team.getPlayers().size(), "Team size should remain 23 after attempting to add a player to a full team");
     }
 }
