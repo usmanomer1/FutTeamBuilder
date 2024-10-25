@@ -1,6 +1,8 @@
 
 package model;
 
+import org.json.JSONObject;
+
 /**
  * Represents a FIFA player with specific attributes.
  */
@@ -123,6 +125,25 @@ public class Player {
         return price;
     }
 
+
+     public JSONObject toJson() {
+        JSONObject json = new JSONObject();
+        json.put("name", name);
+        json.put("nationality", nationality);
+        json.put("league", league);
+        json.put("clubAffiliation", clubAffiliation);
+        json.put("preferredPosition", preferredPosition);
+        json.put("currentPosition", currentPosition);
+        json.put("rating", rating);
+        json.put("pace", pace);
+        json.put("shooting", shooting);
+        json.put("passing", passing);
+       
+        json.put("price", price);
+
+        return json;
+    }
+    
    
 
     
