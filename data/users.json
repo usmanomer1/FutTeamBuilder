@@ -1,0 +1,12 @@
+{"users": [
+    {
+        "teams": [],
+        "passwordHash": "65536:FvcSNETDPyUlh+y4/MqwQQ==:0FJlwww2AxCFnciave1NP0BgRAyQ9gG1CmDdE2k9LUg=",
+        "username": "jane_smith"
+    },
+    {
+        "teams": [],
+        "passwordHash": "65536:9OZ5s57jBEuYb1jq7w+pCA==:kmb4pNmBc25JPEUF5z6Spv6LKLnjG0ibUwXJlCxhEeQ=",
+        "username": "john_doe"
+    }
+]}
