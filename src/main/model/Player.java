@@ -20,15 +20,15 @@ public class Player {
     private String clubAffiliation;
     private int price;
     private String preferredPosition;
+    private boolean isInStarting11;
+    private int dribbling;
+    private int defending;
+    private int physicality;
+    private int skillMoves;
 
-    /**
-     * REQUIRES: name, nationality, position, clubAffiliation are non-empty strings;
-     *           rating, pace, passing, shooting, weakFoot, price >= 0.
-     * MODIFIES: this
-     * EFFECTS: Initializes a player with the given attributes.
-     */
     public Player(String name, String nationality, String league, String clubAffiliation, String preferredPosition, 
-                  String currentPosition, int rating,int pace, int passing, int shooting, int weakFoot, int price) {
+                  String currentPosition, int rating, int pace, int passing, int shooting, int dribbling, int defending, 
+                  int physicality, int skillMoves, int weakFoot, int price, boolean isInStarting11) {
         this.name = name;
         this.nationality = nationality;
         this.league = league;
@@ -41,8 +41,54 @@ public class Player {
         this.shooting = shooting;
         this.weakFoot = weakFoot;
         this.price = price;
+        this.dribbling = dribbling;
+        this.defending = defending;
+        this.physicality = physicality;
+        this.skillMoves = skillMoves;
+        this.isInStarting11 = isInStarting11;
     }
-   
+    
+
+    public int getDribbling() {
+        return dribbling;
+    }
+
+    public void setDribbling(int dribbling) {
+        this.dribbling = dribbling;
+    }
+
+    public int getDefending() {
+        return defending;
+    }
+
+    public void setDefending(int defending) {
+        this.defending = defending;
+    }
+
+    public int getPhysicality() {
+        return physicality;
+    }
+
+    public void setPhysicality(int physicality) {
+        this.physicality = physicality;
+    }
+
+    public int getSkillMoves() {
+        return skillMoves;
+    }
+
+    public void setSkillMoves(int skillMoves) {
+        this.skillMoves = skillMoves;
+    }
+
+    public boolean isInStarting11() {
+        return isInStarting11;
+    }
+
+    public void setInStarting11(boolean isInStarting11) {
+        this.isInStarting11 = isInStarting11;
+    }
+    
     public String getName() {
         return name;
     }
