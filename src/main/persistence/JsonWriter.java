@@ -1,5 +1,3 @@
-// JsonWriter.java
-
 package persistence;
 
 import model.User;
@@ -38,8 +36,6 @@ public class JsonWriter {
         writer = new PrintWriter(new File(destination));
     }
 
-
-
     /**
      * Closes the writer.
      */
@@ -56,7 +52,7 @@ public class JsonWriter {
         writer.print(json);
     }
 
-     /**
+    /**
      * Writes JSON representation of all users to file.
      *
      * @param users the collection of users to write

@@ -1,4 +1,3 @@
-
 package model;
 
 import org.json.JSONObject;
@@ -26,8 +25,8 @@ public class Player {
     private int physicality;
     private int skillMoves;
 
-    public Player(String name, String nationality, String league, String clubAffiliation, String preferredPosition, 
-                  String currentPosition, int rating, int pace, int passing, int shooting, int dribbling, int defending, 
+    public Player(String name, String nationality, String league, String clubAffiliation, String preferredPosition,
+                  String currentPosition, int rating, int pace, int passing, int shooting, int dribbling, int defending,
                   int physicality, int skillMoves, int weakFoot, int price, boolean isInStarting11) {
         this.name = name;
         this.nationality = nationality;
@@ -39,15 +38,16 @@ public class Player {
         this.pace = pace;
         this.passing = passing;
         this.shooting = shooting;
-        this.weakFoot = weakFoot;
-        this.price = price;
         this.dribbling = dribbling;
         this.defending = defending;
         this.physicality = physicality;
         this.skillMoves = skillMoves;
+        this.weakFoot = weakFoot;
+        this.price = price;
         this.isInStarting11 = isInStarting11;
     }
-    
+
+    // Getters and setters for new attributes
 
     public int getDribbling() {
         return dribbling;
@@ -81,6 +81,8 @@ public class Player {
         this.skillMoves = skillMoves;
     }
 
+    // Existing getters and setters
+
     public boolean isInStarting11() {
         return isInStarting11;
     }
@@ -88,22 +90,18 @@ public class Player {
     public void setInStarting11(boolean isInStarting11) {
         this.isInStarting11 = isInStarting11;
     }
-    
+
     public String getName() {
         return name;
     }
 
-  
     public String getNationality() {
         return nationality;
     }
 
- 
-
     public int getRating() {
         return rating;
     }
-
 
     public String getCurrentPosition() {
         return currentPosition;
@@ -124,7 +122,6 @@ public class Player {
         return PositionCompatibility.isCompatible(preferredPosition, currentPosition);
     }
 
-
     public String getPreferredPosition() {
         return preferredPosition;
     }
@@ -141,37 +138,31 @@ public class Player {
         return league;
     }
 
- 
-
     public int getPassing() {
         return passing;
     }
-
-   
 
     public int getShooting() {
         return shooting;
     }
 
-  
-
     public int getWeakFoot() {
         return weakFoot;
     }
-
-  
 
     public String getClubAffiliation() {
         return clubAffiliation;
     }
 
-  
-
     public int getPrice() {
         return price;
     }
 
-
+    /**
+     * Converts the player to a JSON object.
+     *
+     * @return JSON representation of the player
+     */
     public JSONObject toJson() {
         JSONObject json = new JSONObject();
         json.put("name", name);
@@ -184,15 +175,13 @@ public class Player {
         json.put("pace", pace);
         json.put("shooting", shooting);
         json.put("passing", passing);
-       
+        json.put("dribbling", dribbling);
+        json.put("defending", defending);
+        json.put("physicality", physicality);
+        json.put("skillMoves", skillMoves);
+        json.put("weakFoot", weakFoot);
         json.put("price", price);
-
+        json.put("isInStarting11", isInStarting11);
         return json;
     }
-    
-   
-
-    
-
 }
-

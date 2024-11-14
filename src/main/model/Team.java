@@ -1,44 +1,42 @@
-
 package model;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
-
 
 /**
  * Represents a FIFA Ultimate Team composed of players.
  */
 public class Team {
-   
 
-   
     private List<Player> players;
     private int likes;
     private boolean isListed;
     private String name;
-      
-       
-    
-    
-        /**
-         * MODIFIES: this
-         * EFFECTS: Initializes an empty team with zero likes.
-         */
-    public Team(String name) {
+    private Formation formation;
+
+    /**
+     * MODIFIES: this
+     * EFFECTS: Initializes an empty team with zero likes and sets the formation.
+     */
+    public Team(String name, String formationType) {
         this.players = new ArrayList<>();
         this.likes = 0;
         this.isListed = false;
         this.name = name;
+        this.formation = new Formation(formationType);
     }
-         /**
+
+    /**
      * EFFECTS: Returns true if the team is listed in the community.
      *
      * @return true if listed, false if saved as draft
      */
-    
     public boolean isListed() {
         return isListed;
     }
@@ -66,56 +64,101 @@ public class Team {
         return name;
     }
 
-    
-   /**
+    /**
      * REQUIRES: players.size() < 23
      * MODIFIES: this
-     * EFFECTS: Adds a player to the team.
+     * EFFECTS: Adds a player to the team if they are not already in the team.
      */
-    public void addPlayer(Player player) {
-        if (players.size() < 23) {
+    public boolean addPlayer(Player player) {
+        if (players.size() < 23 && !hasPlayer(player.getName())) {
             players.add(player);
+            return true;
+        } else {
+            // Cannot add player: team is full or player is already in the team
+            return false;
         }
     }
 
-    /**
-     * REQUIRES: that the player is in the team
-     * MODIFIES: this
-     * EFFECTS: Removes a player from the team.
-     */
-    public void removePlayer(Player player) {
-    
+    // Removes a player from the team
+    // EFFECTS: Returns true if the player was removed, false if the player was not found
+    public boolean removePlayer(Player player) {
+        return players.remove(player);
+    }
+
+    // Sets the player's status in the starting 11
+    // EFFECTS: Returns true if operation was successful, false otherwise
+    public boolean setPlayerInStarting11(Player player, boolean inStarting11) {
         if (players.contains(player)) {
-            players.remove(player);
+            if (inStarting11) {
+                Set<String> requiredPositions = formation.getRequiredPositions();
+                if (!requiredPositions.contains(player.getCurrentPosition())) {
+                    // Player's position does not match the formation
+                    return false;
+                }
+                int startingCount = getStartingPlayers().size();
+                if (startingCount >= requiredPositions.size() && !player.isInStarting11()) {
+                    // Starting lineup is full
+                    return false;
+                } else {
+                    player.setInStarting11(true);
+                    return true;
+                }
+            } else {
+                player.setInStarting11(false);
+                return true;
+            }
+        } else {
+            // Player is not in the team
+            return false;
         }
-            
-        
-        
     }
 
-    /**
-     * EFFECTS: Returns the total price of the team.
-     */
+    // EFFECTS: Returns a list of players in the starting 11
+    public List<Player> getStartingPlayers() {
+        return players.stream()
+                .filter(Player::isInStarting11)
+                .collect(Collectors.toList());
+    }
+
+    // EFFECTS: Returns a list of substitutes and reserves (not in starting 11)
+    public List<Player> getSubstitutes() {
+        return players.stream()
+                .filter(p -> !p.isInStarting11())
+                .collect(Collectors.toList());
+    }
+
+    // EFFECTS: Returns true if the starting lineup has all required positions filled
+    public boolean isStartingLineupComplete() {
+        List<Player> startingPlayers = getStartingPlayers();
+        Set<String> requiredPositions = formation.getRequiredPositions();
+
+        if (startingPlayers.size() != requiredPositions.size()) {
+            return false;
+        }
+
+        Set<String> startingPositions = startingPlayers.stream()
+                .map(Player::getCurrentPosition)
+                .collect(Collectors.toSet());
+
+        return startingPositions.containsAll(requiredPositions);
+    }
+
+    // EFFECTS: Returns the total price of all players in the team
     public int getTotalPrice() {
-        int totalPrice = 0;
-        for (Player p : players) {
-            totalPrice += p.getPrice();
-        }
-        return totalPrice;
+        return players.stream()
+                .mapToInt(Player::getPrice)
+                .sum();
     }
 
-    /**
-     * EFFECTS: Returns the average rating of the team.
-     */
+    // EFFECTS: Returns the average rating of all players in the team
     public double getAverageRating() {
         if (players.isEmpty()) {
-            return 0;
+            return 0.0;
         }
-        int totalRating = 0;
-        for (Player p : players) {
-            totalRating += p.getRating();
-        }
-        return (double) totalRating / players.size();
+        return players.stream()
+                .mapToInt(Player::getRating)
+                .average()
+                .orElse(0.0);
     }
 
     /**
@@ -126,7 +169,7 @@ public class Team {
         likes++;
     }
 
-     /**
+    /**
      * Checks if the team has a player with the given name.
      *
      * REQUIRES: playerName != null
@@ -156,14 +199,19 @@ public class Team {
     public List<Player> getPlayers() {
         return new ArrayList<>(players);
     }
- 
- 
-    // EFFECTS: Returns the total chemistry of the team.
+
+    // EFFECTS: Returns the total chemistry of the team
     public int calculateChemistry() {
+        List<Player> startingPlayers = getStartingPlayers();
+        if (!isStartingLineupComplete()) {
+            // Starting lineup is incomplete
+            return 0; // Or handle this case as per your application's requirements
+        }
+
         int chemistry = 0;
 
         // Position chemistry
-        for (Player player : players) {
+        for (Player player : startingPlayers) {
             if (player.isInPreferredPosition()) {
                 chemistry += 5; // Full chemistry for correct position
             } else if (player.isPositionCompatible()) {
@@ -174,32 +222,59 @@ public class Team {
         }
 
         // Link chemistry between players
-        for (int i = 0; i < players.size(); i++) {
-            Player p1 = players.get(i);
-            for (int j = i + 1; j < players.size(); j++) {
-                Player p2 = players.get(j);
-
-                int linkChemistry = calculateLinkChemistry(p1, p2);
-                chemistry += linkChemistry;
-            }
-        }
- 
+        chemistry += calculateLinkChemistry(startingPlayers);
 
         return chemistry;
     }
 
-    /**
-     * EFFECTS: Calculates chemistry between two players based on shared attributes.
-     */
-    private int calculateLinkChemistry(Player p1, Player p2) {
+    // Helper method to calculate link chemistry between starting players
+    private int calculateLinkChemistry(List<Player> startingPlayers) {
+        int linkChemistry = 0;
+        Set<String> processedPairs = new HashSet<>();
+
+        for (Player player : startingPlayers) {
+            List<String> linkedPositions = formation.getLinkedPositions(player.getCurrentPosition());
+            for (String linkedPosition : linkedPositions) {
+                Player linkedPlayer = getPlayerByPosition(linkedPosition, startingPlayers);
+                if (linkedPlayer != null) {
+                    String pairKey = generatePairKey(player, linkedPlayer);
+                    if (!processedPairs.contains(pairKey)) {
+                        linkChemistry += calculateLinkChemistryBetweenPlayers(player, linkedPlayer);
+                        processedPairs.add(pairKey);
+                    }
+                }
+            }
+        }
+        return linkChemistry;
+    }
+
+    // Helper method to get a player by position from the starting players
+    private Player getPlayerByPosition(String position, List<Player> startingPlayers) {
+        for (Player player : startingPlayers) {
+            if (player.getCurrentPosition().equalsIgnoreCase(position)) {
+                return player;
+            }
+        }
+        return null;
+    }
+
+    // Helper method to generate a unique key for a pair of players
+    private String generatePairKey(Player p1, Player p2) {
+        String name1 = p1.getName();
+        String name2 = p2.getName();
+        return name1.compareTo(name2) < 0 ? name1 + "-" + name2 : name2 + "-" + name1;
+    }
+
+    // EFFECTS: Calculates chemistry between two players based on shared attributes
+    private int calculateLinkChemistryBetweenPlayers(Player p1, Player p2) {
         int linkChemistry = 0;
         if (p1.getClubAffiliation().equalsIgnoreCase(p2.getClubAffiliation())) {
             linkChemistry += 3;
         } else if (p1.getNationality().equalsIgnoreCase(p2.getNationality())
-                & p1.getLeague().equalsIgnoreCase(p2.getLeague())) {
+                && p1.getLeague().equalsIgnoreCase(p2.getLeague())) {
             linkChemistry += 2;
         } else if (p1.getNationality().equalsIgnoreCase(p2.getNationality())
-                | p1.getLeague().equalsIgnoreCase(p2.getLeague())) {
+                || p1.getLeague().equalsIgnoreCase(p2.getLeague())) {
             linkChemistry += 1;
         }
         return linkChemistry;
@@ -208,29 +283,30 @@ public class Team {
     public boolean isComplete() {
         return players.size() >= 11;
     }
-    
 
     public JSONObject toJson() {
         JSONObject json = new JSONObject();
         json.put("name", name);
         json.put("likes", likes);
         json.put("isListed", isListed);
-
+        json.put("formationType", formation.getFormationType()); // Include formation type
+    
         JSONArray playersArray = new JSONArray();
         for (Player player : players) {
             playersArray.put(player.toJson());
         }
         json.put("players", playersArray);
-
+    
         return json;
     }
     
-    
 
-    
-    
+    // Additional getters and setters for formation if needed
+    public Formation getFormation() {
+        return formation;
+    }
 
-
-
-
+    public void setFormation(String formationType) {
+        this.formation = new Formation(formationType);
+    }
 }

@@ -1,5 +1,3 @@
-// JsonReader.java
-
 package persistence;
 
 import model.User;
@@ -87,7 +85,8 @@ public class JsonReader {
         String name = json.getString("name");
         int likes = json.getInt("likes");
         boolean isListed = json.getBoolean("isListed");
-        Team team = new Team(name);
+        String formationType = json.getString("formationType"); // Get formation type
+        Team team = new Team(name, formationType);
         team.setLikes(likes);
         team.setListed(isListed);
 
@@ -96,6 +95,15 @@ public class JsonReader {
             JSONObject playerJson = (JSONObject) playerObj;
             Player player = parsePlayer(playerJson);
             team.addPlayer(player);
+
+            // Set player in starting 11 if applicable
+            if (player.isInStarting11()) {
+                boolean success = team.setPlayerInStarting11(player, true);
+                if (!success) {
+                    // Handle the case where the player could not be set in starting 11
+                    System.out.println("Warning: Could not set player " + player.getName() + " in starting 11.");
+                }
+            }
         }
         return team;
     }
@@ -115,12 +123,20 @@ public class JsonReader {
         String currentPosition = json.getString("currentPosition");
         int rating = json.getInt("rating");
         int pace = json.getInt("pace");
-        int shooting = json.getInt("shooting");
         int passing = json.getInt("passing");
+        int shooting = json.getInt("shooting");
+        int dribbling = json.getInt("dribbling");
+        int defending = json.getInt("defending");
+        int physicality = json.getInt("physicality");
         int skillMoves = json.getInt("skillMoves");
+        int weakFoot = json.getInt("weakFoot");
         int price = json.getInt("price");
+        boolean isInStarting11 = json.getBoolean("isInStarting11");
 
-        return new Player(name, nationality, league, clubAffiliation, preferredPosition,
-                currentPosition, rating, pace, shooting, passing, skillMoves, price);
+        Player player = new Player(name, nationality, league, clubAffiliation, preferredPosition,
+                currentPosition, rating, pace, passing, shooting, dribbling, defending, physicality,
+                skillMoves, weakFoot, price, isInStarting11);
+
+        return player;
     }
 }
