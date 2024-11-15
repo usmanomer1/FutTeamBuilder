@@ -71,6 +71,8 @@ public class UserManager {
         users.put(user.getUsername(), user);
     }
 
+    
+
     /**
      * EFFECTS: Returns a collection of all users.
      *

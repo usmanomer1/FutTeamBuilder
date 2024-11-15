@@ -4,6 +4,8 @@ package model;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import org.json.JSONObject;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 public class UserTest {
@@ -15,8 +17,8 @@ public class UserTest {
     @BeforeEach
     public void setUp() {
         user = new User("john_doe", "hashed_password", null);
-        team1 = new Team("Team 1");
-        team2 = new Team("Team 2");
+        team1 = new Team("Team 1", "433"); // Updated constructor with formationType
+        team2 = new Team("Team 2", "451"); // Updated constructor with formationType
     }
 
     @Test
@@ -32,7 +34,7 @@ public class UserTest {
     @Test
     public void testCheckPassword() {
         // Assuming PasswordUtils.verifyPassword is correctly implemented
-        // Mock PasswordUtils for testing purposes or use actual method
+        // For testing purposes, we'll simulate the password hashing
         String plainPassword = "password123";
         String hashedPassword = PasswordUtils.hashPassword(plainPassword);
         user = new User("john_doe", hashedPassword, null);
@@ -46,7 +48,7 @@ public class UserTest {
         user.addTeam(team1);
         user.addTeam(team2);
 
-        org.json.JSONObject json = user.toJson();
+        JSONObject json = user.toJson();
         assertEquals("john_doe", json.getString("username"));
         assertEquals(user.getPasswordHash(), json.getString("passwordHash"));
         assertEquals(2, json.getJSONArray("teams").length());

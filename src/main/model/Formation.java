@@ -1,10 +1,11 @@
-
-    package model;
+package model;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import java.io.InputStream;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.*;
 
 public class Formation {
@@ -13,9 +14,14 @@ public class Formation {
 
     // Static map to hold all formations data
     private static final Map<String, Map<String, List<String>>> formationsData = new HashMap<>();
+    private static final String FORMATIONS_FILE = "./data/formations.json";
 
     static {
         loadFormationsData();
+    }
+
+    public String getFormationType() {
+        return formationType;
     }
 
     public Formation(String formationType) {
@@ -24,11 +30,6 @@ public class Formation {
             throw new IllegalArgumentException("Unsupported formation type: " + formationType);
         }
         this.positionAdjacencyMap = formationsData.get(formationType);
-    }
-
-    // EFFECTS: Returns the formation type
-    public String getFormationType() {
-        return formationType;
     }
 
     // EFFECTS: Returns a list of positions linked to the given position
@@ -41,18 +42,11 @@ public class Formation {
         return positionAdjacencyMap.keySet();
     }
 
-    // Loads the formations data from the JSON file using org.json
+    // Loads the formations data from the JSON file using the file system
     private static void loadFormationsData() {
         try {
-            // Read the formations.json file from resources
-            InputStream inputStream = Formation.class.getResourceAsStream("/formations.json");
-            if (inputStream == null) {
-                throw new RuntimeException("formations.json file not found in resources.");
-            }
-            Scanner scanner = new Scanner(inputStream).useDelimiter("\\A");
-            String jsonContent = scanner.hasNext() ? scanner.next() : "";
-
-            JSONObject rootObject = new JSONObject(jsonContent);
+            String content = new String(Files.readAllBytes(Paths.get(FORMATIONS_FILE)));
+            JSONObject rootObject = new JSONObject(content);
 
             // Iterate over each formation
             for (String formationName : rootObject.keySet()) {
@@ -75,12 +69,9 @@ public class Formation {
 
                 formationsData.put(formationName, adjacencyMap);
             }
-        } catch (Exception e) {
+        } catch (IOException e) {
             e.printStackTrace();
             throw new RuntimeException("Failed to load formations data.");
         }
     }
 }
-
-    
-

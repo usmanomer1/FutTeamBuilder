@@ -95,13 +95,18 @@ public class Player {
         return name;
     }
 
+  
+
     public String getNationality() {
         return nationality;
     }
+   
 
     public int getRating() {
         return rating;
     }
+
+
 
     public String getCurrentPosition() {
         return currentPosition;
