@@ -1,11 +1,10 @@
 package ui;
 
+import javax.swing.SwingUtilities;
+
 public class Main {
-    public static void main(String[] args) throws Exception {
-        System.out.println("Welcome to my project!");
-     
-        FootballTeamBuilderApp app = new FootballTeamBuilderApp();
-        app.run();
-        
+    
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> new FootballTeamBuilderApp().setVisible(true));
     }
 }
