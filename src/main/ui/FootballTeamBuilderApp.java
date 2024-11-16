@@ -6,31 +6,40 @@ import model.TeamRepository;
 import model.User;
 import model.UserManager;
 
+import javax.sound.sampled.*;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
-import java.util.ArrayList;
+import java.io.File;
 import java.util.List;
+import java.util.Set;
 
 public class FootballTeamBuilderApp extends JFrame {
     private UserManager userManager;
     private TeamRepository repository;
     private User currentUser;
 
-    private JPanel authPanel;
-    private JPanel mainPanel;
-    private JPanel teamPanel;
+    private JPanel currentPanel;
+
+    private Clip backgroundClip;
+
+    // Declare pitchPanel and formation at the class level
+    private PitchPanel pitchPanel;
+    private String selectedFormation;
 
     public FootballTeamBuilderApp() {
         setTitle("Football Team Builder");
-        setSize(800, 600);
+        setSize(1000, 800);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setLocationRelativeTo(null);
 
         userManager = new UserManager();
         repository = new TeamRepository();
 
         userManager.loadUsers();
         initializeCommunityTeams();
+
+        playBackgroundMusic();
 
         showAuthPanel();
     }
@@ -45,72 +54,158 @@ public class FootballTeamBuilderApp extends JFrame {
         }
     }
 
+    private void playBackgroundMusic() {
+        try {
+            File audioFile = new File("./data/background.wav");
+            if (!audioFile.exists()) {
+                System.out.println("background.wav not found at " + audioFile.getAbsolutePath());
+                return;
+            }
+            AudioInputStream audioIn = AudioSystem.getAudioInputStream(audioFile);
+            backgroundClip = AudioSystem.getClip();
+            backgroundClip.open(audioIn);
+            backgroundClip.loop(Clip.LOOP_CONTINUOUSLY);
+        } catch (Exception e) {
+            System.out.println("Error playing background music.");
+            e.printStackTrace();
+        }
+    }
+
     // Authentication Panel
     private void showAuthPanel() {
-        authPanel = new JPanel();
-        authPanel.setLayout(new GridLayout(4, 1));
+        JPanel authPanel = new JPanel();
+        authPanel.setLayout(new BorderLayout());
+        authPanel.setBackground(new Color(34, 139, 34));
 
         JLabel welcomeLabel = new JLabel("Welcome to the Football Team Builder!", JLabel.CENTER);
+        welcomeLabel.setForeground(Color.WHITE);
+        welcomeLabel.setFont(new Font("Arial", Font.BOLD, 24));
+
+        JPanel buttonPanel = new JPanel();
+        buttonPanel.setOpaque(false);
         JButton signUpButton = new JButton("Sign Up");
         JButton loginButton = new JButton("Login");
 
         signUpButton.addActionListener(e -> signUp());
         loginButton.addActionListener(e -> login());
 
-        authPanel.add(welcomeLabel);
-        authPanel.add(signUpButton);
-        authPanel.add(loginButton);
+        buttonPanel.add(signUpButton);
+        buttonPanel.add(loginButton);
+
+        authPanel.add(welcomeLabel, BorderLayout.CENTER);
+        authPanel.add(buttonPanel, BorderLayout.SOUTH);
 
         setContentPane(authPanel);
-        setVisible(true);
+        revalidate();
+        repaint();
+
+        currentPanel = authPanel;
     }
 
     // Main Panel
     private void showMainPanel() {
-        mainPanel = new JPanel();
-        mainPanel.setLayout(new GridLayout(6, 1));
+        JPanel mainPanel = new JPanel();
+        mainPanel.setLayout(new BorderLayout());
+        mainPanel.setBackground(new Color(34, 139, 34));
 
         JLabel mainLabel = new JLabel("Main Menu", JLabel.CENTER);
+        mainLabel.setForeground(Color.WHITE);
+        mainLabel.setFont(new Font("Arial", Font.BOLD, 24));
+
+        JPanel buttonPanel = new JPanel();
+        buttonPanel.setOpaque(false);
+        buttonPanel.setLayout(new GridLayout(5, 1, 10, 10));
+
         JButton createTeamButton = new JButton("Create a new team");
         JButton viewTeamsButton = new JButton("View your teams");
         JButton searchTeamsButton = new JButton("Search for teams");
         JButton popularTeamsButton = new JButton("View popular teams");
+        JButton logoutButton = new JButton("Logout");
 
-        createTeamButton.addActionListener(e -> showTeamPanel());
+        createTeamButton.addActionListener(e -> selectFormationAndCreateTeam());
         viewTeamsButton.addActionListener(e -> viewUserTeams());
         searchTeamsButton.addActionListener(e -> searchTeams());
         popularTeamsButton.addActionListener(e -> viewPopularTeams());
+        logoutButton.addActionListener(e -> logout());
 
-        mainPanel.add(mainLabel);
-        mainPanel.add(createTeamButton);
-        mainPanel.add(viewTeamsButton);
-        mainPanel.add(searchTeamsButton);
-        mainPanel.add(popularTeamsButton);
+        buttonPanel.add(createTeamButton);
+        buttonPanel.add(viewTeamsButton);
+        buttonPanel.add(searchTeamsButton);
+        buttonPanel.add(popularTeamsButton);
+        buttonPanel.add(logoutButton);
+
+        mainPanel.add(mainLabel, BorderLayout.NORTH);
+        mainPanel.add(buttonPanel, BorderLayout.CENTER);
 
         setContentPane(mainPanel);
         revalidate();
+        repaint();
+
+        currentPanel = mainPanel;
+    }
+
+    // Logout Functionality
+    private void logout() {
+        currentUser = null;
+        showAuthPanel();
+    }
+
+    // Formation Selection and Team Creation
+    private void selectFormationAndCreateTeam() {
+        String[] formations = {"4-4-2", "4-3-3", "3-5-2", "5-3-2"};
+        String formation = (String) JOptionPane.showInputDialog(
+                this,
+                "Select Formation:",
+                "Formation Selection",
+                JOptionPane.PLAIN_MESSAGE,
+                null,
+                formations,
+                formations[0]);
+
+        if (formation != null) {
+            selectedFormation = formation;
+            showTeamPanel();
+        }
     }
 
     // Team Creation Panel
     private void showTeamPanel() {
-        teamPanel = new JPanel();
-        teamPanel.setLayout(new GridLayout(0, 1));
+        JPanel teamPanel = new JPanel(new BorderLayout());
+        teamPanel.setBackground(new Color(34, 139, 34));
 
+        JPanel topPanel = new JPanel();
+        topPanel.setOpaque(false);
         JLabel teamNameLabel = new JLabel("Enter team name:");
-        JTextField teamNameField = new JTextField();
-        JButton addPlayerButton = new JButton("Add Player");
+        teamNameLabel.setForeground(Color.WHITE);
+        JTextField teamNameField = new JTextField(20);
+        topPanel.add(teamNameLabel);
+        topPanel.add(teamNameField);
+
+        // Initialize pitchPanel here
+        pitchPanel = new PitchPanel(e -> {
+            int positionIndex = Integer.parseInt(e.getActionCommand());
+            addPlayerToTeam(teamNameField.getText(), positionIndex);
+        }, selectedFormation);
+
         JButton saveTeamButton = new JButton("Save Team");
-
-        teamPanel.add(teamNameLabel);
-        teamPanel.add(teamNameField);
-        teamPanel.add(addPlayerButton);
-        teamPanel.add(saveTeamButton);
-
-        addPlayerButton.addActionListener(e -> addPlayerToTeam(teamNameField.getText()));
         saveTeamButton.addActionListener(e -> saveTeam(teamNameField.getText()));
+        JButton backButton = new JButton("Back to Main Menu");
+        backButton.addActionListener(e -> showMainPanel());
+
+        JPanel bottomPanel = new JPanel();
+        bottomPanel.setOpaque(false);
+        bottomPanel.add(saveTeamButton);
+        bottomPanel.add(backButton);
+
+        teamPanel.add(topPanel, BorderLayout.NORTH);
+        teamPanel.add(pitchPanel, BorderLayout.CENTER);
+        teamPanel.add(bottomPanel, BorderLayout.SOUTH);
 
         setContentPane(teamPanel);
         revalidate();
+        repaint();
+
+        currentPanel = teamPanel;
     }
 
     // Sign Up Functionality
@@ -128,104 +223,6 @@ public class FootballTeamBuilderApp extends JFrame {
         }
     }
 
-    // Displays a list of teams created by the current user
-private void viewUserTeams() {
-    JPanel userTeamsPanel = new JPanel(new BorderLayout());
-    DefaultListModel<String> teamListModel = new DefaultListModel<>();
-
-    if (currentUser.getTeams().isEmpty()) {
-        JOptionPane.showMessageDialog(this, "You have no teams.");
-    } else {
-        for (Team team : currentUser.getTeams()) {
-            teamListModel.addElement(team.getName() + " (Likes: " + team.getLikes() + ")");
-        }
-        
-        JList<String> teamList = new JList<>(teamListModel);
-        JScrollPane scrollPane = new JScrollPane(teamList);
-        userTeamsPanel.add(scrollPane, BorderLayout.CENTER);
-
-        int selection = JOptionPane.showConfirmDialog(this, userTeamsPanel, "Your Teams", JOptionPane.OK_CANCEL_OPTION);
-        if (selection == JOptionPane.OK_OPTION) {
-            int selectedIndex = teamList.getSelectedIndex();
-            if (selectedIndex != -1) {
-                Team selectedTeam = currentUser.getTeams().get(selectedIndex);
-                displayTeamDetails(selectedTeam);
-            }
-        }
-    }
-}
-
-// Searches for teams in the community based on user-specified budget and rating
-private void searchTeams() {
-    int budget = Integer.parseInt(JOptionPane.showInputDialog(this, "Enter maximum budget:"));
-    double minRating = Double.parseDouble(JOptionPane.showInputDialog(this, "Enter minimum average rating:"));
-    String playerName = JOptionPane.showInputDialog(this, "Enter desired player name (or leave blank):");
-
-    List<Team> matchingTeams = repository.searchTeams(budget, minRating, playerName);
-
-    if (matchingTeams.isEmpty()) {
-        JOptionPane.showMessageDialog(this, "No teams found matching your criteria.");
-    } else {
-        displayTeamsBrief(matchingTeams, "Teams Found");
-    }
-}
-
-// Displays community teams sorted by popularity
-private void viewPopularTeams() {
-    List<Team> popularTeams = repository.getTeamsByPopularity();
-    if (popularTeams.isEmpty()) {
-        JOptionPane.showMessageDialog(this, "No teams available in the community.");
-    } else {
-        displayTeamsBrief(popularTeams, "Popular Teams");
-    }
-}
-
-// Displays brief information about a list of teams and allows the user to select one for detailed view
-private void displayTeamsBrief(List<Team> teams, String title) {
-    JPanel teamsPanel = new JPanel(new BorderLayout());
-    DefaultListModel<String> teamListModel = new DefaultListModel<>();
-
-    for (Team team : teams) {
-        teamListModel.addElement(team.getName() + " | Avg Rating: " + String.format("%.2f", team.getAverageRating()) +
-                ", Chemistry: " + team.calculateChemistry() + ", Total Price: " + team.getTotalPrice() + ", Likes: " + team.getLikes());
-    }
-
-    JList<String> teamList = new JList<>(teamListModel);
-    JScrollPane scrollPane = new JScrollPane(teamList);
-    teamsPanel.add(scrollPane, BorderLayout.CENTER);
-
-    int selection = JOptionPane.showConfirmDialog(this, teamsPanel, title, JOptionPane.OK_CANCEL_OPTION);
-    if (selection == JOptionPane.OK_OPTION) {
-        int selectedIndex = teamList.getSelectedIndex();
-        if (selectedIndex != -1) {
-            Team selectedTeam = teams.get(selectedIndex);
-            displayTeamDetails(selectedTeam);
-        }
-    }
-}
-
-// Displays detailed information about a team, including its players and stats
-private void displayTeamDetails(Team team) {
-    StringBuilder details = new StringBuilder();
-    details.append("Team Name: ").append(team.getName()).append("\n")
-           .append("Total Price: ").append(team.getTotalPrice()).append("\n")
-           .append("Average Rating: ").append(String.format("%.2f", team.getAverageRating())).append("\n")
-           .append("Chemistry: ").append(team.calculateChemistry()).append("\n")
-           .append("Likes: ").append(team.getLikes()).append("\n")
-           .append("Players:\n");
-
-    for (Player player : team.getPlayers()) {
-        details.append("- ").append(player.getName())
-               .append(" (Position: ").append(player.getCurrentPosition())
-               .append(", Rating: ").append(player.getRating())
-               .append(", Price: ").append(player.getPrice())
-               .append(")\n");
-    }
-
-    JOptionPane.showMessageDialog(this, details.toString(), team.getName() + " Details", JOptionPane.INFORMATION_MESSAGE);
-}
-
-
     // Login Functionality
     private void login() {
         String username = JOptionPane.showInputDialog(this, "Enter username:");
@@ -241,55 +238,260 @@ private void displayTeamDetails(Team team) {
     }
 
     // Add Player Form
-    private void addPlayerToTeam(String teamName) {
+    private void addPlayerToTeam(String teamName, int positionIndex) {
         String name = JOptionPane.showInputDialog(this, "Enter player name:");
+        if (name == null || name.trim().isEmpty()) {
+            return;
+        }
         String nationality = JOptionPane.showInputDialog(this, "Enter player nationality:");
+        if (nationality == null) {
+            nationality = "";
+        }
         String league = JOptionPane.showInputDialog(this, "Enter player league:");
+        if (league == null) {
+            league = "";
+        }
         String clubAffiliation = JOptionPane.showInputDialog(this, "Enter player club affiliation:");
+        if (clubAffiliation == null) {
+            clubAffiliation = "";
+        }
         String preferredPosition = JOptionPane.showInputDialog(this, "Enter player preferred position:");
+        if (preferredPosition == null) {
+            preferredPosition = "";
+        }
         String currentPosition = JOptionPane.showInputDialog(this, "Enter player current position:");
-        int rating = Integer.parseInt(JOptionPane.showInputDialog(this, "Enter player rating (1-100):"));
-        int pace = Integer.parseInt(JOptionPane.showInputDialog(this, "Enter player pace (1-100):"));
-        int passing = Integer.parseInt(JOptionPane.showInputDialog(this, "Enter player passing (1-100):"));
-        int shooting = Integer.parseInt(JOptionPane.showInputDialog(this, "Enter player shooting (1-100):"));
-        int dribbling = Integer.parseInt(JOptionPane.showInputDialog(this, "Enter player dribbling (1-100):"));
-        int defending = Integer.parseInt(JOptionPane.showInputDialog(this, "Enter player defending (1-100):"));
-        int physicality = Integer.parseInt(JOptionPane.showInputDialog(this, "Enter player physicality (1-100):"));
-        int skillMoves = Integer.parseInt(JOptionPane.showInputDialog(this, "Enter player skill moves (1-5):"));
-        int weakFoot = Integer.parseInt(JOptionPane.showInputDialog(this, "Enter player weak foot (1-5):"));
-        int price = Integer.parseInt(JOptionPane.showInputDialog(this, "Enter player price:"));
-        boolean isInStarting11 = JOptionPane.showConfirmDialog(this, "Is player in starting 11?") == JOptionPane.YES_OPTION;
+        if (currentPosition == null) {
+            currentPosition = "";
+        }
+
+        int rating = getIntInput("Enter player rating (1-100):", 1, 100);
+        int pace = getIntInput("Enter player pace (1-100):", 1, 100);
+        int passing = getIntInput("Enter player passing (1-100):", 1, 100);
+        int shooting = getIntInput("Enter player shooting (1-100):", 1, 100);
+        int dribbling = getIntInput("Enter player dribbling (1-100):", 1, 100);
+        int defending = getIntInput("Enter player defending (1-100):", 1, 100);
+        int physicality = getIntInput("Enter player physicality (1-100):", 1, 100);
+        int skillMoves = getIntInput("Enter player skill moves (1-5):", 1, 5);
+        int weakFoot = getIntInput("Enter player weak foot (1-5):", 1, 5);
+        int price = getIntInput("Enter player price:", 0, Integer.MAX_VALUE);
+
+        boolean isInStarting11 = positionIndex < 11;
 
         Player player = new Player(name, nationality, league, clubAffiliation, preferredPosition, currentPosition,
                 rating, pace, passing, shooting, dribbling, defending, physicality, skillMoves, weakFoot, price, isInStarting11);
-        
-        Team team = currentUser.getTeams().stream()
-                .filter(t -> t.getName().equals(teamName))
-                .findFirst()
-                .orElse(new Team(teamName, "4-4-2"));
-        
+
+        String stats = "<html>PAC: " + pace + "<br>SHO: " + shooting + "<br>DRI: " + dribbling +
+                "<br>DEF: " + defending + "<br>PHY: " + physicality + "<br>PAS: " + passing +
+                "<br>SM: " + skillMoves + "<br>WF: " + weakFoot + "</html>";
+
+        pitchPanel.updatePlayerCard(positionIndex, name, stats);
+
+        Team team = currentUser.getTeamByName(teamName);
+        if (team == null) {
+            team = new Team(teamName, selectedFormation);
+            currentUser.addTeam(team);
+        }
+
         team.addPlayer(player);
-        currentUser.addTeam(team);
         JOptionPane.showMessageDialog(this, "Player added to " + teamName);
+    }
+
+    private int getIntInput(String message, int min, int max) {
+        while (true) {
+            String inputStr = JOptionPane.showInputDialog(this, message);
+            if (inputStr == null) {
+                return min; // Default value if cancelled
+            }
+            try {
+                int input = Integer.parseInt(inputStr);
+                if (input >= min && input <= max) {
+                    return input;
+                } else {
+                    JOptionPane.showMessageDialog(this, "Please enter a value between " + min + " and " + max);
+                }
+            } catch (NumberFormatException ex) {
+                JOptionPane.showMessageDialog(this, "Invalid input. Please enter a number.");
+            }
+        }
     }
 
     // Save Team Method
     private void saveTeam(String teamName) {
-        Team team = currentUser.getTeams().stream()
-                .filter(t -> t.getName().equals(teamName))
-                .findFirst()
-                .orElse(null);
+        Team team = currentUser.getTeamByName(teamName);
         if (team != null && team.isComplete()) {
-            currentUser.addTeam(team);
+            team.setListed(true);
             repository.addTeamToCommunity(team);
             userManager.saveUsers();
             JOptionPane.showMessageDialog(this, "Team " + teamName + " saved and listed in community.");
+            showMainPanel();
         } else {
             JOptionPane.showMessageDialog(this, "Cannot save incomplete team!");
         }
-
-        
     }
 
-  
+    // View User Teams
+    private void viewUserTeams() {
+        JPanel userTeamsPanel = new JPanel(new BorderLayout());
+        DefaultListModel<String> teamListModel = new DefaultListModel<>();
+
+        if (currentUser.getTeams().isEmpty()) {
+            JOptionPane.showMessageDialog(this, "You have no teams.");
+        } else {
+            for (Team team : currentUser.getTeams()) {
+                teamListModel.addElement(team.getName() + " (Likes: " + team.getLikes() + ")");
+            }
+
+            JList<String> teamList = new JList<>(teamListModel);
+            JScrollPane scrollPane = new JScrollPane(teamList);
+            userTeamsPanel.add(scrollPane, BorderLayout.CENTER);
+
+            JButton backButton = new JButton("Back to Main Menu");
+            backButton.addActionListener(e -> showMainPanel());
+
+            userTeamsPanel.add(backButton, BorderLayout.SOUTH);
+
+            int selection = JOptionPane.showConfirmDialog(this, userTeamsPanel, "Your Teams", JOptionPane.OK_CANCEL_OPTION);
+            if (selection == JOptionPane.OK_OPTION) {
+                int selectedIndex = teamList.getSelectedIndex();
+                if (selectedIndex != -1) {
+                    Team selectedTeam = currentUser.getTeams().get(selectedIndex);
+                    displayTeamDetails(selectedTeam);
+                }
+            }
+        }
+    }
+
+    // Search Teams
+    private void searchTeams() {
+        JSlider budgetSlider = new JSlider(JSlider.HORIZONTAL, 0, 100000000, 50000000);
+        budgetSlider.setMajorTickSpacing(20000000);
+        budgetSlider.setMinorTickSpacing(5000000);
+        budgetSlider.setPaintTicks(true);
+        budgetSlider.setPaintLabels(true);
+
+        // Custom labels for the budget slider
+        java.util.Hashtable<Integer, JLabel> labelTable = new java.util.Hashtable<>();
+        labelTable.put(0, new JLabel("0"));
+        labelTable.put(20000000, new JLabel("20M"));
+        labelTable.put(40000000, new JLabel("40M"));
+        labelTable.put(60000000, new JLabel("60M"));
+        labelTable.put(80000000, new JLabel("80M"));
+        labelTable.put(100000000, new JLabel("100M"));
+        budgetSlider.setLabelTable(labelTable);
+
+        JSlider ratingSlider = new JSlider(0, 100, 80);
+        ratingSlider.setMajorTickSpacing(10);
+        ratingSlider.setPaintTicks(true);
+        ratingSlider.setPaintLabels(true);
+
+        JTextField playerNameField = new JTextField(20);
+
+        JPanel searchPanel = new JPanel(new GridLayout(0, 1));
+        searchPanel.add(new JLabel("Maximum Budget:"));
+        searchPanel.add(budgetSlider);
+        searchPanel.add(new JLabel("Minimum Average Rating:"));
+        searchPanel.add(ratingSlider);
+        searchPanel.add(new JLabel("Player Name (optional):"));
+        searchPanel.add(playerNameField);
+
+        int result = JOptionPane.showConfirmDialog(this, searchPanel, "Search Teams", JOptionPane.OK_CANCEL_OPTION);
+
+        if (result == JOptionPane.OK_OPTION) {
+            int budget = budgetSlider.getValue();
+            double minRating = ratingSlider.getValue();
+            String playerName = playerNameField.getText();
+
+            List<Team> matchingTeams = repository.searchTeams(budget, minRating, playerName);
+
+            if (matchingTeams.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "No teams found matching your criteria.");
+            } else {
+                displayTeamsBrief(matchingTeams, "Teams Found");
+            }
+        }
+    }
+
+    // View Popular Teams
+    private void viewPopularTeams() {
+        List<Team> popularTeams = repository.getTeamsByPopularity();
+        if (popularTeams.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "No teams available in the community.");
+        } else {
+            displayTeamsBrief(popularTeams, "Popular Teams");
+        }
+    }
+
+    // Display Teams Brief
+    private void displayTeamsBrief(List<Team> teams, String title) {
+        JPanel teamsPanel = new JPanel(new BorderLayout());
+        DefaultListModel<String> teamListModel = new DefaultListModel<>();
+
+        for (Team team : teams) {
+            teamListModel.addElement(team.getName() + " | Avg Rating: " + String.format("%.2f", team.getAverageRating()) +
+                    ", Chemistry: " + team.calculateChemistry() + ", Total Price: " + team.getTotalPrice() + ", Likes: " + team.getLikes());
+        }
+
+        JList<String> teamList = new JList<>(teamListModel);
+        JScrollPane scrollPane = new JScrollPane(teamList);
+        teamsPanel.add(scrollPane, BorderLayout.CENTER);
+
+        JButton backButton = new JButton("Back to Main Menu");
+        backButton.addActionListener(e -> showMainPanel());
+        teamsPanel.add(backButton, BorderLayout.SOUTH);
+
+        int selection = JOptionPane.showConfirmDialog(this, teamsPanel, title, JOptionPane.OK_CANCEL_OPTION);
+        if (selection == JOptionPane.OK_OPTION) {
+            int selectedIndex = teamList.getSelectedIndex();
+            if (selectedIndex != -1) {
+                Team selectedTeam = teams.get(selectedIndex);
+                displayTeamDetails(selectedTeam);
+            }
+        }
+    }
+
+    // Display Team Details
+    private void displayTeamDetails(Team team) {
+        StringBuilder details = new StringBuilder();
+        details.append("Team Name: ").append(team.getName()).append("\n")
+                .append("Total Price: ").append(team.getTotalPrice()).append("\n")
+                .append("Average Rating: ").append(String.format("%.2f", team.getAverageRating())).append("\n")
+                .append("Chemistry: ").append(team.calculateChemistry()).append("\n")
+                .append("Likes: ").append(team.getLikes()).append("\n")
+                .append("Players:\n");
+
+        for (Player player : team.getPlayers()) {
+            details.append("- ").append(player.getName())
+                    .append(" (Position: ").append(player.getCurrentPosition())
+                    .append(", Rating: ").append(player.getRating())
+                    .append(", Price: ").append(player.getPrice())
+                    .append(")\n");
+        }
+
+        JPanel detailPanel = new JPanel(new BorderLayout());
+        JTextArea detailArea = new JTextArea(details.toString());
+        detailArea.setEditable(false);
+        JScrollPane scrollPane = new JScrollPane(detailArea);
+
+        JButton likeButton = new JButton("Like");
+        likeButton.addActionListener(e -> {
+            team.likeTeam();
+            JOptionPane.showMessageDialog(this, "You liked " + team.getName());
+        });
+
+        JButton backButton = new JButton("Back to Main Menu");
+        backButton.addActionListener(e -> showMainPanel());
+
+        JPanel buttonPanel = new JPanel();
+        buttonPanel.add(likeButton);
+        buttonPanel.add(backButton);
+
+        detailPanel.add(scrollPane, BorderLayout.CENTER);
+        detailPanel.add(buttonPanel, BorderLayout.SOUTH);
+
+        JOptionPane.showMessageDialog(this, detailPanel, team.getName() + " Details", JOptionPane.INFORMATION_MESSAGE);
+    }
+
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> new FootballTeamBuilderApp().setVisible(true));
+    }
 }

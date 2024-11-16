@@ -50,6 +50,15 @@ public class User {
         return PasswordUtils.verifyPassword(password, passwordHash);
     }
 
+    public Team getTeamByName(String name) {
+        for (Team team : teams) {
+            if (team.getName().equalsIgnoreCase(name)) {
+                return team;
+            }
+        }
+        return null;
+    }
+
 
      /**
      * Converts the User to a JSONObject.
