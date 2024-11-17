@@ -21,6 +21,7 @@ public class Formation {
         loadFormationsData();
     }
 
+
     public Formation(String formationType) {
         this.formationType = formationType;
         if (!formationsData.containsKey(formationType)) {
@@ -29,6 +30,11 @@ public class Formation {
         this.positionAdjacencyMap = formationsData.get(formationType);
         this.positionCoordinates = positionsData.get(formationType);
     }
+
+    public static Set<String> getAllFormationNames() {
+        return formationsData.keySet();
+    }
+    
 
     public String getFormationType() {
         return formationType;
