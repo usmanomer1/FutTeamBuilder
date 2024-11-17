@@ -80,18 +80,25 @@ public class TeamRepository {
      * @param desiredPlayerName the desired player name (can be partial or empty)
      * @return list of matching teams
      */
-    public List<Team> searchTeams(int budget, double minAverageRating,  String desiredPlayerName) {
+    public List<Team> searchTeams(int budget, double minAverageRating, String desiredPlayerName) {
         List<Team> result = new ArrayList<>();
         for (Team team : communityTeams) {
             boolean matchesBudget = team.getTotalPrice() <= budget;
             boolean matchesRating = team.getAverageRating() >= minAverageRating;
-               //boolean matchesChemistry = team.calculateChemistry() >= chemistry;
-            boolean matchesPlayer = desiredPlayerName.isEmpty() | team.hasPlayer(desiredPlayerName);
-
-            if (matchesBudget & matchesRating & matchesPlayer) {
+            boolean matchesPlayer = desiredPlayerName == null || desiredPlayerName.isEmpty()
+                    || team.hasPlayer(desiredPlayerName);
+    
+            // Debugging output
+            System.out.println("Team: " + team.getName());
+            System.out.println("Total Price: " + team.getTotalPrice() + ", Budget: " + budget + ", Matches Budget: " + matchesBudget);
+            System.out.println("Average Rating: " + team.getAverageRating() + ", Min Rating: " + minAverageRating + ", Matches Rating: " + matchesRating);
+            System.out.println("Desired Player: " + desiredPlayerName + ", Matches Player: " + matchesPlayer);
+    
+            if (matchesBudget && matchesRating && matchesPlayer) {
                 result.add(team);
             }
         }
         return result;
     }
+    
 }

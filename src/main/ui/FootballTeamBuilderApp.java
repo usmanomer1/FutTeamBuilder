@@ -460,10 +460,7 @@ public class FootballTeamBuilderApp extends JFrame {
         ratingSlider.setPaintLabels(true);
     
         JLabel budgetLabel = new JLabel("Maximum Total Price:");
-        JSlider budgetSlider = new JSlider(0, 1000000, 500000);
-        budgetSlider.setMajorTickSpacing(100000);
-        budgetSlider.setPaintTicks(true);
-        budgetSlider.setPaintLabels(true);
+        JTextField budgetField = new JTextField();
     
         JLabel playerNameLabel = new JLabel("Desired Player Name:");
         JTextField playerNameField = new JTextField();
@@ -471,15 +468,25 @@ public class FootballTeamBuilderApp extends JFrame {
         searchPanel.add(ratingLabel);
         searchPanel.add(ratingSlider);
         searchPanel.add(budgetLabel);
-        searchPanel.add(budgetSlider);
+        searchPanel.add(budgetField);
         searchPanel.add(playerNameLabel);
         searchPanel.add(playerNameField);
     
         int result = JOptionPane.showConfirmDialog(this, searchPanel, "Search Teams", JOptionPane.OK_CANCEL_OPTION);
         if (result == JOptionPane.OK_OPTION) {
             double minRating = ratingSlider.getValue();
-            int maxBudget = budgetSlider.getValue();
+            String budgetText = budgetField.getText().trim();
             String desiredPlayerName = playerNameField.getText().trim();
+    
+            int maxBudget = Integer.MAX_VALUE; // Default value if budget not specified
+            if (!budgetText.isEmpty()) {
+                try {
+                    maxBudget = Integer.parseInt(budgetText);
+                } catch (NumberFormatException e) {
+                    JOptionPane.showMessageDialog(this, "Invalid budget input. Please enter a valid number.");
+                    return;
+                }
+            }
     
             List<Team> matchingTeams = repository.searchTeams(maxBudget, minRating, desiredPlayerName);
     
@@ -490,6 +497,7 @@ public class FootballTeamBuilderApp extends JFrame {
             }
         }
     }
+    
     
     // View Popular Teams
     private void viewPopularTeams() {
