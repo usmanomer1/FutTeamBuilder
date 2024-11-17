@@ -1,5 +1,6 @@
 package ui;
 
+import model.Formation;
 import model.Player;
 import model.Team;
 import model.TeamRepository;
@@ -11,7 +12,9 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.io.File;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public class FootballTeamBuilderApp extends JFrame {
@@ -23,9 +26,10 @@ public class FootballTeamBuilderApp extends JFrame {
 
     private Clip backgroundClip;
 
-    // Declare pitchPanel and formation at the class level
+    // Declare pitchPanel, formation, and teamNameField at the class level
     private PitchPanel pitchPanel;
     private String selectedFormation;
+    private JTextField teamNameField; // Moved to class level
 
     public FootballTeamBuilderApp() {
         setTitle("Football Team Builder");
@@ -150,23 +154,36 @@ public class FootballTeamBuilderApp extends JFrame {
         showAuthPanel();
     }
 
-    // Formation Selection and Team Creation
     private void selectFormationAndCreateTeam() {
-        String[] formations = {"4-4-2", "4-3-3", "3-5-2", "5-3-2"};
-        String formation = (String) JOptionPane.showInputDialog(
-                this,
-                "Select Formation:",
-                "Formation Selection",
-                JOptionPane.PLAIN_MESSAGE,
-                null,
-                formations,
-                formations[0]);
+    // Get all formation codes from the Formation class
+    Set<String> formationCodes = Formation.getAllFormationNames();
 
-        if (formation != null) {
-            selectedFormation = formation;
-            showTeamPanel();
-        }
+    // Map formation codes to display names (adding dashes)
+    Map<String, String> formationMap = new LinkedHashMap<>();
+    for (String code : formationCodes) {
+        // Add dashes to the formation code for display (e.g., "442" -> "4-4-2")
+        String displayName = String.join("-", code.split(""));
+        formationMap.put(displayName, code);
     }
+
+    // Prepare the formations array for the UI
+    String[] formations = formationMap.keySet().toArray(new String[0]);
+
+    String formationDisplayName = (String) JOptionPane.showInputDialog(
+            this,
+            "Select Formation:",
+            "Formation Selection",
+            JOptionPane.PLAIN_MESSAGE,
+            null,
+            formations,
+            formations[0]);
+
+    if (formationDisplayName != null) {
+        selectedFormation = formationMap.get(formationDisplayName); // This will be the code without dashes
+        showTeamPanel();
+    }
+}
+
 
     // Team Creation Panel
     private void showTeamPanel() {
@@ -177,18 +194,18 @@ public class FootballTeamBuilderApp extends JFrame {
         topPanel.setOpaque(false);
         JLabel teamNameLabel = new JLabel("Enter team name:");
         teamNameLabel.setForeground(Color.WHITE);
-        JTextField teamNameField = new JTextField(20);
+        teamNameField = new JTextField(20); // Use the class-level variable
         topPanel.add(teamNameLabel);
         topPanel.add(teamNameField);
 
         // Initialize pitchPanel here
         pitchPanel = new PitchPanel(e -> {
             int positionIndex = Integer.parseInt(e.getActionCommand());
-            addPlayerToTeam(teamNameField.getText(), positionIndex);
+            addPlayerToTeam(positionIndex);
         }, selectedFormation);
 
         JButton saveTeamButton = new JButton("Save Team");
-        saveTeamButton.addActionListener(e -> saveTeam(teamNameField.getText()));
+        saveTeamButton.addActionListener(e -> saveTeam());
         JButton backButton = new JButton("Back to Main Menu");
         backButton.addActionListener(e -> showMainPanel());
 
@@ -211,7 +228,16 @@ public class FootballTeamBuilderApp extends JFrame {
     // Sign Up Functionality
     private void signUp() {
         String username = JOptionPane.showInputDialog(this, "Enter username:");
+        if (username == null || username.trim().isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Username cannot be empty.");
+            return;
+        }
+
         String password = JOptionPane.showInputDialog(this, "Enter password:");
+        if (password == null || password.trim().isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Password cannot be empty.");
+            return;
+        }
 
         try {
             currentUser = userManager.signUp(username, password);
@@ -226,7 +252,16 @@ public class FootballTeamBuilderApp extends JFrame {
     // Login Functionality
     private void login() {
         String username = JOptionPane.showInputDialog(this, "Enter username:");
+        if (username == null || username.trim().isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Username cannot be empty.");
+            return;
+        }
+
         String password = JOptionPane.showInputDialog(this, "Enter password:");
+        if (password == null || password.trim().isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Password cannot be empty.");
+            return;
+        }
 
         try {
             currentUser = userManager.login(username, password);
@@ -238,7 +273,13 @@ public class FootballTeamBuilderApp extends JFrame {
     }
 
     // Add Player Form
-    private void addPlayerToTeam(String teamName, int positionIndex) {
+    private void addPlayerToTeam(int positionIndex) {
+        String teamName = teamNameField.getText().trim();
+        if (teamName.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please enter a team name before adding players.");
+            return;
+        }
+
         String name = JOptionPane.showInputDialog(this, "Enter player name:");
         if (name == null || name.trim().isEmpty()) {
             return;
@@ -277,22 +318,50 @@ public class FootballTeamBuilderApp extends JFrame {
 
         boolean isInStarting11 = positionIndex < 11;
 
-        Player player = new Player(name, nationality, league, clubAffiliation, preferredPosition, currentPosition,
-                rating, pace, passing, shooting, dribbling, defending, physicality, skillMoves, weakFoot, price, isInStarting11);
+        // Create the Player object
+        Player player = new Player(
+            name,
+            nationality,
+            league,
+            clubAffiliation,
+            preferredPosition,
+            currentPosition,
+            rating,
+            pace,
+            passing,
+            shooting,
+            dribbling,
+            defending,
+            physicality,
+            skillMoves,
+            weakFoot,
+            price,
+            isInStarting11
+        );
 
-        String stats = "<html>PAC: " + pace + "<br>SHO: " + shooting + "<br>DRI: " + dribbling +
-                "<br>DEF: " + defending + "<br>PHY: " + physicality + "<br>PAS: " + passing +
-                "<br>SM: " + skillMoves + "<br>WF: " + weakFoot + "</html>";
-
-        pitchPanel.updatePlayerCard(positionIndex, name, stats);
-
+        // Retrieve or create the team
         Team team = currentUser.getTeamByName(teamName);
         if (team == null) {
             team = new Team(teamName, selectedFormation);
             currentUser.addTeam(team);
         }
 
-        team.addPlayer(player);
+        // Check if player already exists in the team
+        if (team.hasPlayer(name)) {
+            JOptionPane.showMessageDialog(this, "Player already exists in the team.");
+            return;
+        }
+
+        // Add the player to the team
+        boolean added = team.addPlayer(player);
+        if (!added) {
+            JOptionPane.showMessageDialog(this, "Cannot add player. Team might be full.");
+            return;
+        }
+
+        // Update the pitch panel with the Player object
+        pitchPanel.updatePlayerCard(positionIndex, player);
+
         JOptionPane.showMessageDialog(this, "Player added to " + teamName);
     }
 
@@ -316,7 +385,13 @@ public class FootballTeamBuilderApp extends JFrame {
     }
 
     // Save Team Method
-    private void saveTeam(String teamName) {
+    private void saveTeam() {
+        String teamName = teamNameField.getText().trim();
+        if (teamName.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please enter a team name before saving the team.");
+            return;
+        }
+
         Team team = currentUser.getTeamByName(teamName);
         if (team != null && team.isComplete()) {
             team.setListed(true);
@@ -325,7 +400,9 @@ public class FootballTeamBuilderApp extends JFrame {
             JOptionPane.showMessageDialog(this, "Team " + teamName + " saved and listed in community.");
             showMainPanel();
         } else {
-            JOptionPane.showMessageDialog(this, "Cannot save incomplete team!");
+            int playersNeeded = 11 - (team != null ? team.getStartingPlayers().size() : 0);
+            JOptionPane.showMessageDialog(this, "Cannot save incomplete team! You need to add " +
+                    playersNeeded + " more players to the starting eleven.");
         }
     }
 
@@ -489,9 +566,5 @@ public class FootballTeamBuilderApp extends JFrame {
         detailPanel.add(buttonPanel, BorderLayout.SOUTH);
 
         JOptionPane.showMessageDialog(this, detailPanel, team.getName() + " Details", JOptionPane.INFORMATION_MESSAGE);
-    }
-
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> new FootballTeamBuilderApp().setVisible(true));
     }
 }
