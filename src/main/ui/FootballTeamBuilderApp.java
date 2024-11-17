@@ -1,16 +1,15 @@
 package ui;
 
-import model.Formation;
 import model.Player;
 import model.Team;
 import model.TeamRepository;
 import model.User;
 import model.UserManager;
+import model.Formation;
 
 import javax.sound.sampled.*;
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
 import java.io.File;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -26,10 +25,10 @@ public class FootballTeamBuilderApp extends JFrame {
 
     private Clip backgroundClip;
 
-    // Declare pitchPanel, formation, and teamNameField at the class level
+    // Declare pitchPanel, selectedFormation, and teamNameField at the class level
     private PitchPanel pitchPanel;
     private String selectedFormation;
-    private JTextField teamNameField; // Moved to class level
+    private JTextField teamNameField;
 
     public FootballTeamBuilderApp() {
         setTitle("Football Team Builder");
@@ -154,36 +153,47 @@ public class FootballTeamBuilderApp extends JFrame {
         showAuthPanel();
     }
 
+    // Formation Selection and Team Creation
     private void selectFormationAndCreateTeam() {
-    // Get all formation codes from the Formation class
-    Set<String> formationCodes = Formation.getAllFormationNames();
+        // Get all formation codes from the Formation class
+        Set<String> formationCodes = Formation.getAllFormationNames();
 
-    // Map formation codes to display names (adding dashes)
-    Map<String, String> formationMap = new LinkedHashMap<>();
-    for (String code : formationCodes) {
-        // Add dashes to the formation code for display (e.g., "442" -> "4-4-2")
-        String displayName = String.join("-", code.split(""));
-        formationMap.put(displayName, code);
+        // Map formation codes to display names
+        Map<String, String> formationMap = new LinkedHashMap<>();
+        for (String code : formationCodes) {
+            String displayName;
+
+            // Handle special cases with parentheses
+            if (code.contains("(")) {
+                // Example: "41212(2)" becomes "4-1-2-1-2 (2)"
+                String baseCode = code.substring(0, code.indexOf("("));
+                String variant = code.substring(code.indexOf("("));
+                displayName = String.join("-", baseCode.split("")) + " " + variant;
+            } else {
+                // Add dashes between digits
+                displayName = String.join("-", code.split(""));
+            }
+
+            formationMap.put(displayName, code);
+        }
+
+        // Prepare the formations array for the UI
+        String[] formations = formationMap.keySet().toArray(new String[0]);
+
+        String formationDisplayName = (String) JOptionPane.showInputDialog(
+                this,
+                "Select Formation:",
+                "Formation Selection",
+                JOptionPane.PLAIN_MESSAGE,
+                null,
+                formations,
+                formations[0]);
+
+        if (formationDisplayName != null) {
+            selectedFormation = formationMap.get(formationDisplayName); // This will be the code without dashes
+            showTeamPanel();
+        }
     }
-
-    // Prepare the formations array for the UI
-    String[] formations = formationMap.keySet().toArray(new String[0]);
-
-    String formationDisplayName = (String) JOptionPane.showInputDialog(
-            this,
-            "Select Formation:",
-            "Formation Selection",
-            JOptionPane.PLAIN_MESSAGE,
-            null,
-            formations,
-            formations[0]);
-
-    if (formationDisplayName != null) {
-        selectedFormation = formationMap.get(formationDisplayName); // This will be the code without dashes
-        showTeamPanel();
-    }
-}
-
 
     // Team Creation Panel
     private void showTeamPanel() {
@@ -342,7 +352,7 @@ public class FootballTeamBuilderApp extends JFrame {
         // Retrieve or create the team
         Team team = currentUser.getTeamByName(teamName);
         if (team == null) {
-            team = new Team(teamName, selectedFormation);
+            team = new Team(teamName, selectedFormation); // Use selectedFormation here
             currentUser.addTeam(team);
         }
 
@@ -440,54 +450,47 @@ public class FootballTeamBuilderApp extends JFrame {
 
     // Search Teams
     private void searchTeams() {
-        JSlider budgetSlider = new JSlider(JSlider.HORIZONTAL, 0, 100000000, 50000000);
-        budgetSlider.setMajorTickSpacing(20000000);
-        budgetSlider.setMinorTickSpacing(5000000);
-        budgetSlider.setPaintTicks(true);
-        budgetSlider.setPaintLabels(true);
-
-        // Custom labels for the budget slider
-        java.util.Hashtable<Integer, JLabel> labelTable = new java.util.Hashtable<>();
-        labelTable.put(0, new JLabel("0"));
-        labelTable.put(20000000, new JLabel("20M"));
-        labelTable.put(40000000, new JLabel("40M"));
-        labelTable.put(60000000, new JLabel("60M"));
-        labelTable.put(80000000, new JLabel("80M"));
-        labelTable.put(100000000, new JLabel("100M"));
-        budgetSlider.setLabelTable(labelTable);
-
-        JSlider ratingSlider = new JSlider(0, 100, 80);
+        JPanel searchPanel = new JPanel(new GridLayout(3, 2, 10, 10));
+        searchPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+    
+        JLabel ratingLabel = new JLabel("Minimum Average Rating:");
+        JSlider ratingSlider = new JSlider(0, 100, 50);
         ratingSlider.setMajorTickSpacing(10);
         ratingSlider.setPaintTicks(true);
         ratingSlider.setPaintLabels(true);
-
-        JTextField playerNameField = new JTextField(20);
-
-        JPanel searchPanel = new JPanel(new GridLayout(0, 1));
-        searchPanel.add(new JLabel("Maximum Budget:"));
-        searchPanel.add(budgetSlider);
-        searchPanel.add(new JLabel("Minimum Average Rating:"));
+    
+        JLabel budgetLabel = new JLabel("Maximum Total Price:");
+        JSlider budgetSlider = new JSlider(0, 1000000, 500000);
+        budgetSlider.setMajorTickSpacing(100000);
+        budgetSlider.setPaintTicks(true);
+        budgetSlider.setPaintLabels(true);
+    
+        JLabel playerNameLabel = new JLabel("Desired Player Name:");
+        JTextField playerNameField = new JTextField();
+    
+        searchPanel.add(ratingLabel);
         searchPanel.add(ratingSlider);
-        searchPanel.add(new JLabel("Player Name (optional):"));
+        searchPanel.add(budgetLabel);
+        searchPanel.add(budgetSlider);
+        searchPanel.add(playerNameLabel);
         searchPanel.add(playerNameField);
-
+    
         int result = JOptionPane.showConfirmDialog(this, searchPanel, "Search Teams", JOptionPane.OK_CANCEL_OPTION);
-
         if (result == JOptionPane.OK_OPTION) {
-            int budget = budgetSlider.getValue();
             double minRating = ratingSlider.getValue();
-            String playerName = playerNameField.getText();
-
-            List<Team> matchingTeams = repository.searchTeams(budget, minRating, playerName);
-
+            int maxBudget = budgetSlider.getValue();
+            String desiredPlayerName = playerNameField.getText().trim();
+    
+            List<Team> matchingTeams = repository.searchTeams(maxBudget, minRating, desiredPlayerName);
+    
             if (matchingTeams.isEmpty()) {
-                JOptionPane.showMessageDialog(this, "No teams found matching your criteria.");
+                JOptionPane.showMessageDialog(this, "No teams match your search criteria.");
             } else {
-                displayTeamsBrief(matchingTeams, "Teams Found");
+                displayTeamsBrief(matchingTeams, "Search Results");
             }
         }
     }
-
+    
     // View Popular Teams
     private void viewPopularTeams() {
         List<Team> popularTeams = repository.getTeamsByPopularity();
@@ -566,5 +569,12 @@ public class FootballTeamBuilderApp extends JFrame {
         detailPanel.add(buttonPanel, BorderLayout.SOUTH);
 
         JOptionPane.showMessageDialog(this, detailPanel, team.getName() + " Details", JOptionPane.INFORMATION_MESSAGE);
+    }
+
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> {
+            FootballTeamBuilderApp app = new FootballTeamBuilderApp();
+            app.setVisible(true);
+        });
     }
 }
