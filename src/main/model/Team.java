@@ -1,8 +1,10 @@
 package model;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -15,6 +17,8 @@ import org.json.JSONObject;
 public class Team {
 
     private List<Player> players;
+    private Map<String, Player> starting11 = new HashMap<>();
+
     private int likes;
     private boolean isListed;
     private String name;
@@ -72,12 +76,22 @@ public class Team {
     public boolean addPlayer(Player player) {
         if (players.size() < 23 && !hasPlayer(player.getName())) {
             players.add(player);
+            if (player.isInStarting11()) {
+                boolean success = setPlayerInStarting11(player, true);
+                if (!success) {
+                    // Cannot set player in starting 11, handle accordingly
+                    System.out.println("Warning: Could not set player " + player.getName() + " in starting 11.");
+                    // Optionally set player's isInStarting11 to false
+                    player.setInStarting11(false);
+                }
+            }
             return true;
         } else {
             // Cannot add player: team is full or player is already in the team
             return false;
         }
     }
+    
 
     // Removes a player from the team
     // EFFECTS: Returns true if the player was removed, false if the player was not found
@@ -90,21 +104,26 @@ public class Team {
     public boolean setPlayerInStarting11(Player player, boolean inStarting11) {
         if (players.contains(player)) {
             if (inStarting11) {
-                Set<String> requiredPositions = formation.getRequiredPositions();
-                if (!requiredPositions.contains(player.getCurrentPosition())) {
+                Set<String> requiredPositions = formation.getRequiredPositions().stream()
+                        .map(String::toUpperCase)
+                        .collect(Collectors.toSet());
+                String playerPosition = player.getCurrentPosition().toUpperCase();
+    
+                if (!requiredPositions.contains(playerPosition)) {
                     // Player's position does not match the formation
                     return false;
                 }
-                int startingCount = getStartingPlayers().size();
-                if (startingCount >= requiredPositions.size() && !player.isInStarting11()) {
+                if (starting11.size() >= requiredPositions.size() && !player.isInStarting11()) {
                     // Starting lineup is full
                     return false;
                 } else {
                     player.setInStarting11(true);
+                    starting11.put(playerPosition, player);
                     return true;
                 }
             } else {
                 player.setInStarting11(false);
+                starting11.remove(player.getCurrentPosition().toUpperCase());
                 return true;
             }
         } else {
@@ -112,7 +131,7 @@ public class Team {
             return false;
         }
     }
-
+    
     // EFFECTS: Returns a list of players in the starting 11
     public List<Player> getStartingPlayers() {
         return players.stream()

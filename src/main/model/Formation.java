@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class Formation {
     private String formationType;
@@ -39,6 +40,14 @@ public class Formation {
     public String getFormationType() {
         return formationType;
     }
+
+    public static Set<String> getPositionsForFormation(String formationType) {
+    Map<String, List<String>> positionAdjacencyMap = formationsData.get(formationType);
+    return positionAdjacencyMap.keySet().stream()
+            .map(String::toUpperCase)
+            .collect(Collectors.toSet());
+}
+
 
     public List<String> getLinkedPositions(String position) {
         return positionAdjacencyMap.getOrDefault(position.toUpperCase(), new ArrayList<>());

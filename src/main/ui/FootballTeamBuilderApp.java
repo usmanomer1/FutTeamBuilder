@@ -310,10 +310,25 @@ public class FootballTeamBuilderApp extends JFrame {
         if (preferredPosition == null) {
             preferredPosition = "";
         }
-        String currentPosition = JOptionPane.showInputDialog(this, "Enter player current position:");
-        if (currentPosition == null) {
-            currentPosition = "";
-        }
+       // Get valid positions from the formation
+    Set<String> validPositions = Formation.getPositionsForFormation(selectedFormation);
+    String[] positionOptions = validPositions.toArray(new String[0]);
+
+    // Present the position options to the user
+    String currentPosition = (String) JOptionPane.showInputDialog(
+            this,
+            "Select player current position:",
+            "Player Position",
+            JOptionPane.PLAIN_MESSAGE,
+            null,
+            positionOptions,
+            positionOptions[0]);
+
+    if (currentPosition == null || currentPosition.trim().isEmpty()) {
+        JOptionPane.showMessageDialog(this, "Player position cannot be empty.");
+        return;
+    }
+
 
         int rating = getIntInput("Enter player rating (1-100):", 1, 100);
         int pace = getIntInput("Enter player pace (1-100):", 1, 100);
