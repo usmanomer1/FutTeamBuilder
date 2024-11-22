@@ -22,7 +22,6 @@ public class Formation {
         loadFormationsData();
     }
 
-
     public Formation(String formationType) {
         this.formationType = formationType;
         if (!formationsData.containsKey(formationType)) {
@@ -32,29 +31,18 @@ public class Formation {
         this.positionCoordinates = positionsData.get(formationType);
     }
 
-    public static Set<String> getAllFormationNames() {
-        return formationsData.keySet();
-    }
-    
-
     public String getFormationType() {
         return formationType;
     }
-
-    public static Set<String> getPositionsForFormation(String formationType) {
-    Map<String, List<String>> positionAdjacencyMap = formationsData.get(formationType);
-    return positionAdjacencyMap.keySet().stream()
-            .map(String::toUpperCase)
-            .collect(Collectors.toSet());
-}
-
 
     public List<String> getLinkedPositions(String position) {
         return positionAdjacencyMap.getOrDefault(position.toUpperCase(), new ArrayList<>());
     }
 
     public Set<String> getRequiredPositions() {
-        return positionAdjacencyMap.keySet();
+        return positionAdjacencyMap.keySet().stream()
+                .map(pos -> pos.toUpperCase().trim())
+                .collect(Collectors.toSet());
     }
 
     public Map<String, double[]> getPositionCoordinates() {
@@ -80,8 +68,8 @@ public class Formation {
                 JSONArray edgesArray = formationObject.getJSONArray("edges");
                 for (int i = 0; i < edgesArray.length(); i++) {
                     JSONArray edge = edgesArray.getJSONArray(i);
-                    String position1 = edge.getString(0);
-                    String position2 = edge.getString(1);
+                    String position1 = edge.getString(0).toUpperCase().trim();
+                    String position2 = edge.getString(1).toUpperCase().trim();
 
                     adjacencyMap.computeIfAbsent(position1, k -> new ArrayList<>()).add(position2);
                     adjacencyMap.computeIfAbsent(position2, k -> new ArrayList<>()).add(position1);
@@ -93,7 +81,7 @@ public class Formation {
                     JSONArray coordinates = positionsObject.getJSONArray(position);
                     double x = coordinates.getDouble(0);
                     double y = coordinates.getDouble(1);
-                    coordinatesMap.put(position, new double[]{x, y});
+                    coordinatesMap.put(position.toUpperCase().trim(), new double[]{x, y});
                 }
 
                 formationsData.put(formationName, adjacencyMap);
@@ -103,5 +91,12 @@ public class Formation {
             e.printStackTrace();
             throw new RuntimeException("Failed to load formations data.");
         }
+    }
+
+    public static Set<String> getPositionsForFormation(String formationType) {
+        if (!positionsData.containsKey(formationType)) {
+            throw new IllegalArgumentException("Unsupported formation type: " + formationType);
+        }
+        return positionsData.get(formationType).keySet();
     }
 }

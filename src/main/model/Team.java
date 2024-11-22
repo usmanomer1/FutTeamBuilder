@@ -146,21 +146,25 @@ public class Team {
                 .collect(Collectors.toList());
     }
 
-    // EFFECTS: Returns true if the starting lineup has all required positions filled
     public boolean isStartingLineupComplete() {
-        List<Player> startingPlayers = getStartingPlayers();
-        Set<String> requiredPositions = formation.getRequiredPositions();
-
-        if (startingPlayers.size() != requiredPositions.size()) {
-            return false;
-        }
-
-        Set<String> startingPositions = startingPlayers.stream()
-                .map(Player::getCurrentPosition)
+        Set<String> requiredPositions = formation.getRequiredPositions().stream()
+                .map(String::toUpperCase)
                 .collect(Collectors.toSet());
-
-        return startingPositions.containsAll(requiredPositions);
+        Set<String> startingPositions = starting11.keySet().stream()
+                .map(String::toUpperCase)
+                .collect(Collectors.toSet());
+    
+        // Debugging output
+        System.out.println("Required Positions: " + requiredPositions);
+        System.out.println("Starting Positions: " + startingPositions);
+    
+        boolean isComplete = startingPositions.containsAll(requiredPositions);
+        System.out.println("Is Starting Lineup Complete? " + isComplete);
+    
+        return isComplete;
     }
+    
+    
 
     // EFFECTS: Returns the total price of all players in the team
     public int getTotalPrice() {

@@ -10,6 +10,7 @@ import model.Formation;
 import javax.sound.sampled.*;
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
 import java.io.File;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -27,7 +28,7 @@ public class FootballTeamBuilderApp extends JFrame {
 
     // Declare pitchPanel, selectedFormation, and teamNameField at the class level
     private PitchPanel pitchPanel;
-    private String selectedFormation;
+    private Formation selectedFormation; // Change to Formation object
     private JTextField teamNameField;
 
     public FootballTeamBuilderApp() {
@@ -156,24 +157,12 @@ public class FootballTeamBuilderApp extends JFrame {
     // Formation Selection and Team Creation
     private void selectFormationAndCreateTeam() {
         // Get all formation codes from the Formation class
-        Set<String> formationCodes = Formation.getAllFormationNames();
+        Set<String> formationCodes = Formation.getAllFormationTypes();
 
         // Map formation codes to display names
         Map<String, String> formationMap = new LinkedHashMap<>();
         for (String code : formationCodes) {
-            String displayName;
-
-            // Handle special cases with parentheses
-            if (code.contains("(")) {
-                // Example: "41212(2)" becomes "4-1-2-1-2 (2)"
-                String baseCode = code.substring(0, code.indexOf("("));
-                String variant = code.substring(code.indexOf("("));
-                displayName = String.join("-", baseCode.split("")) + " " + variant;
-            } else {
-                // Add dashes between digits
-                displayName = String.join("-", code.split(""));
-            }
-
+            String displayName = code.replaceAll("(\\d)(?=(\\d))", "$1-"); // Add dashes between digits
             formationMap.put(displayName, code);
         }
 
@@ -190,7 +179,13 @@ public class FootballTeamBuilderApp extends JFrame {
                 formations[0]);
 
         if (formationDisplayName != null) {
-            selectedFormation = formationMap.get(formationDisplayName); // This will be the code without dashes
+            String formationCode = formationMap.get(formationDisplayName);
+            try {
+                selectedFormation = new Formation(formationCode);
+            } catch (IllegalArgumentException e) {
+                JOptionPane.showMessageDialog(this, "Selected formation is unsupported.");
+                return;
+            }
             showTeamPanel();
         }
     }
@@ -208,11 +203,8 @@ public class FootballTeamBuilderApp extends JFrame {
         topPanel.add(teamNameLabel);
         topPanel.add(teamNameField);
 
-        // Initialize pitchPanel here
-        pitchPanel = new PitchPanel(e -> {
-            int positionIndex = Integer.parseInt(e.getActionCommand());
-            addPlayerToTeam(positionIndex);
-        }, selectedFormation);
+        // Initialize pitchPanel here with Formation object
+        pitchPanel = new PitchPanel(e -> addPlayerToTeam((ActionEvent) e), selectedFormation);
 
         JButton saveTeamButton = new JButton("Save Team");
         saveTeamButton.addActionListener(e -> saveTeam());
@@ -283,7 +275,9 @@ public class FootballTeamBuilderApp extends JFrame {
     }
 
     // Add Player Form
-    private void addPlayerToTeam(int positionIndex) {
+    private void addPlayerToTeam(ActionEvent e) {
+        String positionName = e.getActionCommand().toUpperCase().trim();
+
         String teamName = teamNameField.getText().trim();
         if (teamName.isEmpty()) {
             JOptionPane.showMessageDialog(this, "Please enter a team name before adding players.");
@@ -306,29 +300,12 @@ public class FootballTeamBuilderApp extends JFrame {
         if (clubAffiliation == null) {
             clubAffiliation = "";
         }
-        String preferredPosition = JOptionPane.showInputDialog(this, "Enter player preferred position:");
-        if (preferredPosition == null) {
-            preferredPosition = "";
+        // Preferred position can be optional or same as current position
+        String preferredPosition = JOptionPane.showInputDialog(this, "Enter player preferred position (optional):");
+        if (preferredPosition == null || preferredPosition.trim().isEmpty()) {
+            preferredPosition = positionName; // Default to current position
         }
-       // Get valid positions from the formation
-    Set<String> validPositions = Formation.getPositionsForFormation(selectedFormation);
-    String[] positionOptions = validPositions.toArray(new String[0]);
-
-    // Present the position options to the user
-    String currentPosition = (String) JOptionPane.showInputDialog(
-            this,
-            "Select player current position:",
-            "Player Position",
-            JOptionPane.PLAIN_MESSAGE,
-            null,
-            positionOptions,
-            positionOptions[0]);
-
-    if (currentPosition == null || currentPosition.trim().isEmpty()) {
-        JOptionPane.showMessageDialog(this, "Player position cannot be empty.");
-        return;
-    }
-
+        preferredPosition = preferredPosition.toUpperCase().trim();
 
         int rating = getIntInput("Enter player rating (1-100):", 1, 100);
         int pace = getIntInput("Enter player pace (1-100):", 1, 100);
@@ -341,33 +318,33 @@ public class FootballTeamBuilderApp extends JFrame {
         int weakFoot = getIntInput("Enter player weak foot (1-5):", 1, 5);
         int price = getIntInput("Enter player price:", 0, Integer.MAX_VALUE);
 
-        boolean isInStarting11 = positionIndex < 11;
+        boolean isInStarting11 = true; // Since the user clicked on a starting position
 
         // Create the Player object
         Player player = new Player(
-            name,
-            nationality,
-            league,
-            clubAffiliation,
-            preferredPosition,
-            currentPosition,
-            rating,
-            pace,
-            passing,
-            shooting,
-            dribbling,
-            defending,
-            physicality,
-            skillMoves,
-            weakFoot,
-            price,
-            isInStarting11
+                name,
+                nationality,
+                league,
+                clubAffiliation,
+                preferredPosition,
+                positionName,
+                rating,
+                pace,
+                passing,
+                shooting,
+                dribbling,
+                defending,
+                physicality,
+                skillMoves,
+                weakFoot,
+                price,
+                isInStarting11
         );
 
         // Retrieve or create the team
         Team team = currentUser.getTeamByName(teamName);
         if (team == null) {
-            team = new Team(teamName, selectedFormation); // Use selectedFormation here
+            team = new Team(teamName, selectedFormation.getFormationType()); // Use selectedFormation here
             currentUser.addTeam(team);
         }
 
@@ -384,8 +361,15 @@ public class FootballTeamBuilderApp extends JFrame {
             return;
         }
 
+        // Attempt to set player in starting 11
+        boolean setInStarting11 = team.setPlayerInStarting11(player, true);
+        if (!setInStarting11) {
+            JOptionPane.showMessageDialog(this, "Cannot set player to starting 11. Position might be occupied or invalid.");
+            return;
+        }
+
         // Update the pitch panel with the Player object
-        pitchPanel.updatePlayerCard(positionIndex, player);
+        pitchPanel.updatePlayerCard(positionName, player);
 
         JOptionPane.showMessageDialog(this, "Player added to " + teamName);
     }
@@ -418,7 +402,7 @@ public class FootballTeamBuilderApp extends JFrame {
         }
 
         Team team = currentUser.getTeamByName(teamName);
-        if (team != null && team.isComplete()) {
+        if (team != null && team.isStartingLineupComplete()) {
             team.setListed(true);
             repository.addTeamToCommunity(team);
             userManager.saveUsers();
@@ -467,32 +451,32 @@ public class FootballTeamBuilderApp extends JFrame {
     private void searchTeams() {
         JPanel searchPanel = new JPanel(new GridLayout(3, 2, 10, 10));
         searchPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-    
+
         JLabel ratingLabel = new JLabel("Minimum Average Rating:");
         JSlider ratingSlider = new JSlider(0, 100, 50);
         ratingSlider.setMajorTickSpacing(10);
         ratingSlider.setPaintTicks(true);
         ratingSlider.setPaintLabels(true);
-    
+
         JLabel budgetLabel = new JLabel("Maximum Total Price:");
         JTextField budgetField = new JTextField();
-    
+
         JLabel playerNameLabel = new JLabel("Desired Player Name:");
         JTextField playerNameField = new JTextField();
-    
+
         searchPanel.add(ratingLabel);
         searchPanel.add(ratingSlider);
         searchPanel.add(budgetLabel);
         searchPanel.add(budgetField);
         searchPanel.add(playerNameLabel);
         searchPanel.add(playerNameField);
-    
+
         int result = JOptionPane.showConfirmDialog(this, searchPanel, "Search Teams", JOptionPane.OK_CANCEL_OPTION);
         if (result == JOptionPane.OK_OPTION) {
             double minRating = ratingSlider.getValue();
             String budgetText = budgetField.getText().trim();
             String desiredPlayerName = playerNameField.getText().trim();
-    
+
             int maxBudget = Integer.MAX_VALUE; // Default value if budget not specified
             if (!budgetText.isEmpty()) {
                 try {
@@ -502,9 +486,9 @@ public class FootballTeamBuilderApp extends JFrame {
                     return;
                 }
             }
-    
+
             List<Team> matchingTeams = repository.searchTeams(maxBudget, minRating, desiredPlayerName);
-    
+
             if (matchingTeams.isEmpty()) {
                 JOptionPane.showMessageDialog(this, "No teams match your search criteria.");
             } else {
@@ -512,8 +496,7 @@ public class FootballTeamBuilderApp extends JFrame {
             }
         }
     }
-    
-    
+
     // View Popular Teams
     private void viewPopularTeams() {
         List<Team> popularTeams = repository.getTeamsByPopularity();

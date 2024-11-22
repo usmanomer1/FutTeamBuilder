@@ -11,24 +11,31 @@ import java.util.HashMap;
 import java.util.Map;
 
 import model.Player;
+import model.Formation;
 
 public class PitchPanel extends JPanel {
-    private Map<Integer, JButton> positionButtons = new HashMap<>();
-    private Map<Integer, JButton> substituteButtons = new HashMap<>();
+    private Map<String, JButton> positionButtons = new HashMap<>();
+    private Map<Integer, JButton> substituteButtons = new HashMap<>(); // Assuming substitutes have unique identifiers
     private JButton toggleSubsButton;
     private boolean isSubstitutesVisible = false;
-    private String formationType;
+    private Formation formation;
 
     // Card dimensions
-    private static final int CARD_WIDTH = 120;
-    private static final int CARD_HEIGHT = 160;
+    private static final int CARD_WIDTH = 80;
+    private static final int CARD_HEIGHT = 120;
+
+    // Define margin constants
+    private static final int LEFT_MARGIN = 50;
+    private static final int RIGHT_MARGIN = 50;
+    private static final int TOP_MARGIN = 50;
+    private static final int BOTTOM_MARGIN = 50;
 
     private JPanel centerPanel;
     private JLayeredPane startingElevenPane;
     private JLayeredPane substitutesPane;
 
-    public PitchPanel(ActionListener addPlayerListener, String formationType) {
-        this.formationType = formationType;
+    public PitchPanel(ActionListener addPlayerListener, Formation formation) {
+        this.formation = formation;
         setLayout(new BorderLayout());
         setBackground(Color.GREEN); // Default background
 
@@ -41,11 +48,11 @@ public class PitchPanel extends JPanel {
         centerPanel.setBackground(Color.GREEN); // Default background color
 
         // Initialize starting eleven pane
-        startingElevenPane = createPitchPane(addPlayerListener, formationType, false);
+        startingElevenPane = createPitchPane(addPlayerListener, false);
         centerPanel.add(startingElevenPane, BorderLayout.CENTER);
 
-        // Initialize substitutes pane
-        substitutesPane = createPitchPane(addPlayerListener, formationType, true);
+        // Initialize substitutes pane (assuming substitutes have predefined positions)
+        substitutesPane = createPitchPane(addPlayerListener, true);
 
         // Add centerPanel to PitchPanel
         add(centerPanel, BorderLayout.CENTER);
@@ -59,7 +66,7 @@ public class PitchPanel extends JPanel {
         add(toggleButtonPanel, BorderLayout.NORTH);
     }
 
-    private JLayeredPane createPitchPane(ActionListener addPlayerListener, String formationType, boolean isSubstitutes) {
+    private JLayeredPane createPitchPane(ActionListener addPlayerListener, boolean isSubstitutes) {
         JLayeredPane layeredPane = new JLayeredPane();
         layeredPane.setLayout(null); // Use absolute positioning
         layeredPane.setOpaque(true); // Ensure the background is painted
@@ -105,51 +112,88 @@ public class PitchPanel extends JPanel {
             layeredPane.add(pitchLabel, Integer.valueOf(0)); // Base layer
         }
 
-        // Positions coordinates for players
-        int[][] positions = isSubstitutes
-                ? getPositionsForSubstitutes(pitchWidth, pitchHeight)
-                : getPositionsForFormation(formationType, pitchWidth, pitchHeight);
+        if (!isSubstitutes) {
+            // Starting Eleven Positions
+            Map<String, double[]> positionCoordinates = formation.getPositionCoordinates();
 
-        for (int i = 0; i < positions.length; i++) {
-            JButton btn = new JButton();
-            btn.setBounds(positions[i][0], positions[i][1], CARD_WIDTH, CARD_HEIGHT);
-            btn.addActionListener(addPlayerListener);
-            int actionIndex = isSubstitutes ? i + 11 : i;
-            btn.setActionCommand(String.valueOf(actionIndex)); // Use position index as action command
-            btn.setOpaque(false);
-            btn.setContentAreaFilled(false);
-            btn.setBorderPainted(false);
-            btn.setForeground(Color.BLACK);
-            btn.setFont(new Font("Arial", Font.BOLD, 12));
+            for (Map.Entry<String, double[]> entry : positionCoordinates.entrySet()) {
+                String positionName = entry.getKey().toUpperCase().trim();
+                double[] coords = entry.getValue();
 
-            // Set empty card slot image using file system paths
-            ImageIcon emptyCardIcon = loadImageIcon("./data/empty_card.png", CARD_WIDTH, CARD_HEIGHT);
-            if (emptyCardIcon != null) {
-                btn.setIcon(emptyCardIcon);
-            } else {
-                System.out.println("empty_card.png could not be loaded.");
-                btn.setText("+");
+                // Convert normalized coordinates (0-6 for x, 0-8 for y) to pixel values with margins
+                int x = LEFT_MARGIN + (int) ((coords[0] / 6.0) * (pitchWidth - LEFT_MARGIN - RIGHT_MARGIN)) - (CARD_WIDTH / 2);
+                int y = TOP_MARGIN + (int) ((coords[1] / 8.0) * (pitchHeight - TOP_MARGIN - BOTTOM_MARGIN)) - (CARD_HEIGHT / 2);
+
+                JButton btn = new JButton();
+                btn.setBounds(x, y, CARD_WIDTH, CARD_HEIGHT);
+                btn.addActionListener(addPlayerListener);
+                btn.setActionCommand(positionName); // Use position name as action command
+                btn.setOpaque(false);
+                btn.setContentAreaFilled(false);
+                btn.setBorderPainted(false);
+                btn.setForeground(Color.BLACK);
+                btn.setFont(new Font("Arial", Font.BOLD, 12));
+
+                // Set empty card slot image using file system paths
+                ImageIcon emptyCardIcon = loadImageIcon("./data/empty_card.png", CARD_WIDTH, CARD_HEIGHT);
+                if (emptyCardIcon != null) {
+                    btn.setIcon(emptyCardIcon);
+                } else {
+                    System.out.println("empty_card.png could not be loaded.");
+                    btn.setText("+");
+                }
+
+                positionButtons.put(positionName, btn);
+                layeredPane.add(btn, Integer.valueOf(1)); // Above the pitch image
             }
+        } else {
+            // Substitutes Positions (Define substitutes positions here or use a standard layout)
+            // For simplicity, let's arrange substitutes in a fixed area below the pitch
 
-            if (isSubstitutes) {
+            int numSubstitutes = 12;
+            int cols = 4;
+            int rows = (int) Math.ceil((double) numSubstitutes / cols);
+
+            int xSpacing = (pitchWidth - cols * CARD_WIDTH) / (cols + 1);
+            int ySpacing = (int) (pitchHeight * 0.75); // Place substitutes lower on the panel
+
+            for (int i = 0; i < numSubstitutes; i++) {
+                int col = i % cols;
+                int row = i / cols;
+
+                int x = xSpacing + col * (CARD_WIDTH + xSpacing);
+                int y = ySpacing + row * (CARD_HEIGHT + ySpacing);
+
+                JButton btn = new JButton();
+                btn.setBounds(x, y, CARD_WIDTH, CARD_HEIGHT);
+                btn.addActionListener(addPlayerListener);
+                int actionIndex = i + 11; // Starting index for substitutes
+                btn.setActionCommand(String.valueOf(actionIndex)); // Use unique index as action command
+                btn.setOpaque(false);
+                btn.setContentAreaFilled(false);
+                btn.setBorderPainted(false);
+                btn.setForeground(Color.BLACK);
+                btn.setFont(new Font("Arial", Font.BOLD, 12));
+
+                // Set empty card slot image using file system paths
+                ImageIcon emptyCardIcon = loadImageIcon("./data/empty_card.png", CARD_WIDTH, CARD_HEIGHT);
+                if (emptyCardIcon != null) {
+                    btn.setIcon(emptyCardIcon);
+                } else {
+                    System.out.println("empty_card.png could not be loaded.");
+                    btn.setText("+");
+                }
+
                 substituteButtons.put(actionIndex, btn);
-            } else {
-                positionButtons.put(actionIndex, btn);
+                layeredPane.add(btn, Integer.valueOf(1)); // Above the pitch image
             }
-            layeredPane.add(btn, Integer.valueOf(1)); // Above the pitch image
         }
 
         return layeredPane;
     }
 
-    public void updatePlayerCard(int positionIndex, Player player) {
-        JButton btn;
-        if (positionIndex < 11) {
-            btn = positionButtons.get(positionIndex);
-        } else {
-            btn = substituteButtons.get(positionIndex);
-        }
-
+    public void updatePlayerCard(String positionName, Player player) {
+        JButton btn = positionButtons.get(positionName.toUpperCase());
         if (btn != null) {
             ImageIcon playerCardIcon = createPlayerCardIcon(player);
             if (playerCardIcon != null) {
@@ -237,69 +281,6 @@ public class PitchPanel extends JPanel {
         }
         centerPanel.revalidate();
         centerPanel.repaint();
-    }
-
-    private int[][] getPositionsForFormation(String formationType, int pitchWidth, int pitchHeight) {
-        // Calculate positions relative to the pitch size
-        int centerX = pitchWidth / 2 - CARD_WIDTH / 2;
-        int centerY = pitchHeight / 2 - CARD_HEIGHT / 2;
-
-        // Example positions for 4-4-2 formation
-        switch (formationType) {
-            case "4-4-2":
-                return new int[][]{
-                    {centerX, pitchHeight - CARD_HEIGHT - 50}, // Goalkeeper
-                    {centerX - 400, centerY + 200},            // Left Back
-                    {centerX + 400, centerY + 200},            // Right Back
-                    {centerX - 200, centerY + 200},            // Center Back Left
-                    {centerX + 200, centerY + 200},            // Center Back Right
-                    {centerX - 400, centerY},                  // Left Midfielder
-                    {centerX + 400, centerY},                  // Right Midfielder
-                    {centerX - 200, centerY - 50},             // Center Midfielder Left
-                    {centerX + 200, centerY - 50},             // Center Midfielder Right
-                    {centerX - 100, centerY - 250},            // Striker Left
-                    {centerX + 100, centerY - 250}             // Striker Right
-                };
-            // Add other formations here
-            default:
-                // Default to 4-4-2
-                return new int[][]{
-                    {centerX, pitchHeight - CARD_HEIGHT - 50}, // Goalkeeper
-                    {centerX - 400, centerY + 200},            // Left Back
-                    {centerX + 400, centerY + 200},            // Right Back
-                    {centerX - 200, centerY + 200},            // Center Back Left
-                    {centerX + 200, centerY + 200},            // Center Back Right
-                    {centerX - 400, centerY},                  // Left Midfielder
-                    {centerX + 400, centerY},                  // Right Midfielder
-                    {centerX - 200, centerY - 50},             // Center Midfielder Left
-                    {centerX + 200, centerY - 50},             // Center Midfielder Right
-                    {centerX - 100, centerY - 250},            // Striker Left
-                    {centerX + 100, centerY - 250}             // Striker Right
-                };
-        }
-    }
-
-    private int[][] getPositionsForSubstitutes(int pitchWidth, int pitchHeight) {
-        // Arrange substitutes in rows
-        int numSubstitutes = 12;
-        int cols = 4;
-        int rows = (int) Math.ceil((double) numSubstitutes / cols);
-
-        int xSpacing = (pitchWidth - cols * CARD_WIDTH) / (cols + 1);
-        int ySpacing = (pitchHeight - rows * CARD_HEIGHT) / (rows + 1);
-
-        int[][] positions = new int[numSubstitutes][2];
-        int index = 0;
-        for (int row = 0; row < rows && index < numSubstitutes; row++) {
-            for (int col = 0; col < cols && index < numSubstitutes; col++) {
-                int x = xSpacing + col * (CARD_WIDTH + xSpacing);
-                int y = ySpacing + row * (CARD_HEIGHT + ySpacing);
-                positions[index][0] = x;
-                positions[index][1] = y;
-                index++;
-            }
-        }
-        return positions;
     }
 
     private ImageIcon loadImageIcon(String filePath, int width, int height) {

@@ -6,9 +6,17 @@
     "configurations": [
         {
             "type": "java",
+            "name": "FootballTeamBuilderApp",
+            "request": "launch",
+            "mainClass": "ui.FootballTeamBuilderApp",
+            "projectName": "project-f9b4i_df4410be"
+        },
+        {
+            "type": "java",
             "name": "Current File",
             "request": "launch",
-            "mainClass": "${file}"
+            "mainClass": "${file}",
+            "vmArgs": "-Dnet.bytebuddy.experimental=true"
         },
         {
             "type": "java",
