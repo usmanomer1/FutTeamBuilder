@@ -33,7 +33,7 @@ public class Player {
         this.league = league;
         this.clubAffiliation = clubAffiliation;
         this.preferredPosition = preferredPosition != null ? preferredPosition.toUpperCase() : null;
-    this.currentPosition = currentPosition != null ? currentPosition.toUpperCase() : null;
+        this.currentPosition = currentPosition != null ? currentPosition.toUpperCase() : null;
         this.rating = rating;
         this.pace = pace;
         this.passing = passing;

@@ -28,6 +28,8 @@ public class TeamRepository {
     public void addTeamToCommunity(Team team) {
         if (team != null && team.isListed() && team.isComplete()) {
             communityTeams.add(team);
+
+            EventLog.getInstance().logEvent(new Event("team added to community: " + team.getName()));
         }
     }
     
@@ -88,11 +90,7 @@ public class TeamRepository {
             boolean matchesPlayer = desiredPlayerName == null || desiredPlayerName.isEmpty()
                     || team.hasPlayer(desiredPlayerName);
     
-            // Debugging output
-            System.out.println("Team: " + team.getName());
-            System.out.println("Total Price: " + team.getTotalPrice() + ", Budget: " + budget + ", Matches Budget: " + matchesBudget);
-            System.out.println("Average Rating: " + team.getAverageRating() + ", Min Rating: " + minAverageRating + ", Matches Rating: " + matchesRating);
-            System.out.println("Desired Player: " + desiredPlayerName + ", Matches Player: " + matchesPlayer);
+           
     
             if (matchesBudget && matchesRating && matchesPlayer) {
                 result.add(team);

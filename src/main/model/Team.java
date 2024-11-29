@@ -34,6 +34,7 @@ public class Team {
         this.isListed = false;
         this.name = name;
         this.formation = new Formation(formationType);
+        EventLog.getInstance().logEvent(new Event("Team " + name + " created with formation " + formationType));
     }
 
     /**
@@ -76,6 +77,7 @@ public class Team {
     public boolean addPlayer(Player player) {
         if (players.size() < 23 && !hasPlayer(player.getName())) {
             players.add(player);
+            EventLog.getInstance().logEvent(new Event("player added to team: " + player.getName()));
             if (player.isInStarting11()) {
                 boolean success = setPlayerInStarting11(player, true);
                 if (!success) {
@@ -99,6 +101,7 @@ public class Team {
         return players.remove(player);
     }
 
+    @SuppressWarnings("methodlength")
     // Sets the player's status in the starting 11
     // EFFECTS: Returns true if operation was successful, false otherwise
     public boolean setPlayerInStarting11(Player player, boolean inStarting11) {
@@ -154,12 +157,10 @@ public class Team {
                 .map(String::toUpperCase)
                 .collect(Collectors.toSet());
     
-        // Debugging output
-        System.out.println("Required Positions: " + requiredPositions);
-        System.out.println("Starting Positions: " + startingPositions);
+   
     
         boolean isComplete = startingPositions.containsAll(requiredPositions);
-        System.out.println("Is Starting Lineup Complete? " + isComplete);
+       
     
         return isComplete;
     }
