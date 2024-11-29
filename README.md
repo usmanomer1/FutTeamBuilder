@@ -81,4 +81,73 @@ Furthermore, the application includes a **popularity feature** where users can *
 
 **Note:** The application securely stores user credentials and team data in JSON format within flat files. Personal teams and their statuses are stored within each user's profile (`users.json`), while community teams are stored in a separate repository (`community_teams.json`) accessible to all users.
 
+
+
+## Phase 4: Task 2
+
+### Event Log Sample
+===== Application Event Log =====
+Fri Nov 29 11:02:59 PST 2024
+Team usmans11 created with formation 433
+Fri Nov 29 11:02:59 PST 2024
+player added to team: mbappe
+Fri Nov 29 11:02:59 PST 2024
+player added to team: benzema
+Fri Nov 29 11:02:59 PST 2024
+player added to team: valverde
+Fri Nov 29 11:02:59 PST 2024
+player added to team: camavinga
+Fri Nov 29 11:02:59 PST 2024
+player added to team: rodrygo
+Fri Nov 29 11:02:59 PST 2024
+player added to team: vinicius jr
+Fri Nov 29 11:02:59 PST 2024
+player added to team: ,endy
+Fri Nov 29 11:02:59 PST 2024
+player added to team: rudiger
+Fri Nov 29 11:02:59 PST 2024
+player added to team: militao
+Fri Nov 29 11:02:59 PST 2024
+player added to team: carvajal
+Fri Nov 29 11:02:59 PST 2024
+player added to team: courois
+Fri Nov 29 11:02:59 PST 2024
+Team usmasn 11 created with formation 4231
+Fri Nov 29 11:02:59 PST 2024
+player added to team: usmankayani
+Fri Nov 29 11:02:59 PST 2024
+player added to team: benzema
+Fri Nov 29 11:02:59 PST 2024
+player added to team: valverde
+Fri Nov 29 11:02:59 PST 2024
+player added to team: rodrygo
+Fri Nov 29 11:02:59 PST 2024
+player added to team: mbappe
+Fri Nov 29 11:02:59 PST 2024
+player added to team: mendy
+Fri Nov 29 11:02:59 PST 2024
+player added to team: carvajal
+Fri Nov 29 11:02:59 PST 2024
+player added to team: rudiger
+Fri Nov 29 11:02:59 PST 2024
+player added to team: militao
+Fri Nov 29 11:02:59 PST 2024
+player added to team: ramos
+Fri Nov 29 11:02:59 PST 2024
+player added to team: courtois
+Fri Nov 29 11:02:59 PST 2024
+team added to community: usmans11
+===== End of Event Log =====
+
 ---
+## Phase 4: Task 3
+Upon reviewing the design presented in my UML class diagram, I identified several areas where refactoring could enhance the application's architecture and maintainability.
+
+One significant refactoring I would undertake is introducing interfaces for key components such as UserManager, TeamRepository, and EventLog. Currently, these classes are tightly coupled to their concrete implementations, which limits flexibility and testability. By defining interfaces like IUserManager, ITeamRepository, and IEventLog, and having the existing classes implement these interfaces, the application would adhere to the Dependency Inversion Principle. This change allows higher-level modules to depend on abstractions rather than concrete implementations, facilitating easier mocking and stubbing during unit testing. It also enhances the application's extensibility, making it straightforward to swap out or modify components without affecting dependent code.
+
+Additionally, I would consider refactoring the persistence layer by introducing a PersistenceHandler interface implemented by JsonReader and JsonWriter. This abstraction decouples the persistence mechanism from the rest of the application, allowing for different storage strategies (e.g., switching from JSON files to a database) without altering the core logic. This approach adheres to the Open/Closed Principle, ensuring the system is open for extension but closed for modification.
+
+Moreover, simplifying the entry point of the application by moving the main method into the FootballTeamBuilderApp class could enhance clarity. Eliminating the separate Main class reduces unnecessary complexity and makes it more intuitive for developers to locate the application's starting point.
+
+These refactorings aim to improve the overall design by promoting modularity, enhancing testability, and adhering to SOLID principles. Implementing these changes would result in a more maintainable and flexible codebase, better prepared for future enhancements and scaling requirements.
+
