@@ -5,19 +5,32 @@ import model.Team;
 import model.TeamRepository;
 import model.User;
 import model.UserManager;
+import model.EventLog;
 import model.Formation;
 
 import javax.sound.sampled.*;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.io.File;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * Represents the main application for building football teams.
+ */
 public class FootballTeamBuilderApp extends JFrame {
+    private static final int MAX_PLAYER_RATING = 100;
+    private static final int MIN_PLAYER_RATING = 1;
+    private static final int MAX_SKILL_MOVES = 5;
+    private static final int MIN_SKILL_MOVES = 1;
+    private static final int MAX_WEAK_FOOT = 5;
+    private static final int MIN_WEAK_FOOT = 1;
+
     private UserManager userManager;
     private TeamRepository repository;
     private User currentUser;
@@ -28,9 +41,12 @@ public class FootballTeamBuilderApp extends JFrame {
 
     // Declare pitchPanel, selectedFormation, and teamNameField at the class level
     private PitchPanel pitchPanel;
-    private Formation selectedFormation; // Change to Formation object
+    private Formation selectedFormation;
     private JTextField teamNameField;
 
+    /**
+     * Constructs the FootballTeamBuilderApp.
+     */
     public FootballTeamBuilderApp() {
         setTitle("Football Team Builder");
         setSize(1000, 800);
@@ -46,8 +62,33 @@ public class FootballTeamBuilderApp extends JFrame {
         playBackgroundMusic();
 
         showAuthPanel();
+
+        addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                printEventLog();
+                if (backgroundClip != null && backgroundClip.isRunning()) {
+                    backgroundClip.stop();
+                }
+                dispose();
+            }
+        });
     }
 
+    /**
+     * Prints the event log to the console.
+     */
+    private void printEventLog() {
+        System.out.println("===== Application Event Log =====");
+        for (model.Event event : EventLog.getInstance()) {
+            System.out.println(event.toString());
+        }
+        System.out.println("===== End of Event Log =====");
+    }
+
+    /**
+     * Initializes community teams from all users.
+     */
     private void initializeCommunityTeams() {
         for (User user : userManager.getAllUsers()) {
             for (Team team : user.getTeams()) {
@@ -58,6 +99,9 @@ public class FootballTeamBuilderApp extends JFrame {
         }
     }
 
+    /**
+     * Plays background music in a loop.
+     */
     private void playBackgroundMusic() {
         try {
             File audioFile = new File("./data/background.wav");
@@ -75,7 +119,9 @@ public class FootballTeamBuilderApp extends JFrame {
         }
     }
 
-    // Authentication Panel
+    /**
+     * Displays the authentication panel.
+     */
     private void showAuthPanel() {
         JPanel authPanel = new JPanel();
         authPanel.setLayout(new BorderLayout());
@@ -106,7 +152,10 @@ public class FootballTeamBuilderApp extends JFrame {
         currentPanel = authPanel;
     }
 
-    // Main Panel
+    /**
+     * Displays the main panel after authentication.
+     */
+    @SuppressWarnings("methodlength")
     private void showMainPanel() {
         JPanel mainPanel = new JPanel();
         mainPanel.setLayout(new BorderLayout());
@@ -148,25 +197,25 @@ public class FootballTeamBuilderApp extends JFrame {
         currentPanel = mainPanel;
     }
 
-    // Logout Functionality
+    /**
+     * Logs out the current user.
+     */
     private void logout() {
         currentUser = null;
         showAuthPanel();
     }
 
-    // Formation Selection and Team Creation
+    /**
+     * Displays formation selection and proceeds to team creation.
+     */
+    @SuppressWarnings("methodlength")
     private void selectFormationAndCreateTeam() {
-        // Get all formation codes from the Formation class
         Set<String> formationCodes = Formation.getAllFormationTypes();
-
-        // Map formation codes to display names
         Map<String, String> formationMap = new LinkedHashMap<>();
         for (String code : formationCodes) {
-            String displayName = code.replaceAll("(\\d)(?=(\\d))", "$1-"); // Add dashes between digits
+            String displayName = code.replaceAll("(\\d)(?=(\\d))", "$1-");
             formationMap.put(displayName, code);
         }
-
-        // Prepare the formations array for the UI
         String[] formations = formationMap.keySet().toArray(new String[0]);
 
         String formationDisplayName = (String) JOptionPane.showInputDialog(
@@ -190,7 +239,10 @@ public class FootballTeamBuilderApp extends JFrame {
         }
     }
 
-    // Team Creation Panel
+    /**
+     * Displays the team creation panel.
+     */
+    @SuppressWarnings("methodlength")
     private void showTeamPanel() {
         JPanel teamPanel = new JPanel(new BorderLayout());
         teamPanel.setBackground(new Color(34, 139, 34));
@@ -199,11 +251,10 @@ public class FootballTeamBuilderApp extends JFrame {
         topPanel.setOpaque(false);
         JLabel teamNameLabel = new JLabel("Enter team name:");
         teamNameLabel.setForeground(Color.WHITE);
-        teamNameField = new JTextField(20); // Use the class-level variable
+        teamNameField = new JTextField(20);
         topPanel.add(teamNameLabel);
         topPanel.add(teamNameField);
 
-        // Initialize pitchPanel here with Formation object
         pitchPanel = new PitchPanel(e -> addPlayerToTeam((ActionEvent) e), selectedFormation);
 
         JButton saveTeamButton = new JButton("Save Team");
@@ -227,7 +278,9 @@ public class FootballTeamBuilderApp extends JFrame {
         currentPanel = teamPanel;
     }
 
-    // Sign Up Functionality
+    /**
+     * Handles user sign-up.
+     */
     private void signUp() {
         String username = JOptionPane.showInputDialog(this, "Enter username:");
         if (username == null || username.trim().isEmpty()) {
@@ -251,7 +304,9 @@ public class FootballTeamBuilderApp extends JFrame {
         }
     }
 
-    // Login Functionality
+    /**
+     * Handles user login.
+     */
     private void login() {
         String username = JOptionPane.showInputDialog(this, "Enter username:");
         if (username == null || username.trim().isEmpty()) {
@@ -274,7 +329,12 @@ public class FootballTeamBuilderApp extends JFrame {
         }
     }
 
-    // Add Player Form
+    /**
+     * Adds a player to the team based on user input.
+     *
+     * @param e the ActionEvent triggered by clicking a position
+     */
+    @SuppressWarnings("methodlength")
     private void addPlayerToTeam(ActionEvent e) {
         String positionName = e.getActionCommand().toUpperCase().trim();
 
@@ -284,44 +344,83 @@ public class FootballTeamBuilderApp extends JFrame {
             return;
         }
 
-        String name = JOptionPane.showInputDialog(this, "Enter player name:");
-        if (name == null || name.trim().isEmpty()) {
+        Player player = promptForPlayerDetails(positionName);
+        if (player == null) {
             return;
         }
+
+        Team team = getOrCreateTeam(teamName);
+
+        if (team.hasPlayer(player.getName())) {
+            JOptionPane.showMessageDialog(this, "Player already exists in the team.");
+            return;
+        }
+
+        if (!team.addPlayer(player)) {
+            JOptionPane.showMessageDialog(this, "Cannot add player. Team might be full.");
+            return;
+        }
+
+        if (!team.setPlayerInStarting11(player, true)) {
+            JOptionPane.showMessageDialog(this,
+                    "Cannot set player to starting 11. Position might be occupied or invalid.");
+            return;
+        }
+
+        pitchPanel.updatePlayerCard(positionName, player);
+
+        JOptionPane.showMessageDialog(this, "Player added to " + teamName);
+    }
+
+    /**
+     * Prompts the user for player details and creates a Player object.
+     *
+     * @param positionName the position name
+     * @return the created Player object, or null if cancelled
+     */
+    @SuppressWarnings("methodlength")
+    private Player promptForPlayerDetails(String positionName) {
+        String name = JOptionPane.showInputDialog(this, "Enter player name:");
+        if (name == null || name.trim().isEmpty()) {
+            return null;
+        }
+
         String nationality = JOptionPane.showInputDialog(this, "Enter player nationality:");
         if (nationality == null) {
             nationality = "";
         }
+
         String league = JOptionPane.showInputDialog(this, "Enter player league:");
         if (league == null) {
             league = "";
         }
+
         String clubAffiliation = JOptionPane.showInputDialog(this, "Enter player club affiliation:");
         if (clubAffiliation == null) {
             clubAffiliation = "";
         }
-        // Preferred position can be optional or same as current position
-        String preferredPosition = JOptionPane.showInputDialog(this, "Enter player preferred position (optional):");
+
+        String preferredPosition = JOptionPane.showInputDialog(
+                this, "Enter player preferred position (optional):");
         if (preferredPosition == null || preferredPosition.trim().isEmpty()) {
-            preferredPosition = positionName; // Default to current position
+            preferredPosition = positionName;
         }
         preferredPosition = preferredPosition.toUpperCase().trim();
 
-        int rating = getIntInput("Enter player rating (1-100):", 1, 100);
-        int pace = getIntInput("Enter player pace (1-100):", 1, 100);
-        int passing = getIntInput("Enter player passing (1-100):", 1, 100);
-        int shooting = getIntInput("Enter player shooting (1-100):", 1, 100);
-        int dribbling = getIntInput("Enter player dribbling (1-100):", 1, 100);
-        int defending = getIntInput("Enter player defending (1-100):", 1, 100);
-        int physicality = getIntInput("Enter player physicality (1-100):", 1, 100);
-        int skillMoves = getIntInput("Enter player skill moves (1-5):", 1, 5);
-        int weakFoot = getIntInput("Enter player weak foot (1-5):", 1, 5);
+        int rating = getIntInput("Enter player rating (1-100):", MIN_PLAYER_RATING, MAX_PLAYER_RATING);
+        int pace = getIntInput("Enter player pace (1-100):", MIN_PLAYER_RATING, MAX_PLAYER_RATING);
+        int passing = getIntInput("Enter player passing (1-100):", MIN_PLAYER_RATING, MAX_PLAYER_RATING);
+        int shooting = getIntInput("Enter player shooting (1-100):", MIN_PLAYER_RATING, MAX_PLAYER_RATING);
+        int dribbling = getIntInput("Enter player dribbling (1-100):", MIN_PLAYER_RATING, MAX_PLAYER_RATING);
+        int defending = getIntInput("Enter player defending (1-100):", MIN_PLAYER_RATING, MAX_PLAYER_RATING);
+        int physicality = getIntInput("Enter player physicality (1-100):", MIN_PLAYER_RATING, MAX_PLAYER_RATING);
+        int skillMoves = getIntInput("Enter player skill moves (1-5):", MIN_SKILL_MOVES, MAX_SKILL_MOVES);
+        int weakFoot = getIntInput("Enter player weak foot (1-5):", MIN_WEAK_FOOT, MAX_WEAK_FOOT);
         int price = getIntInput("Enter player price:", 0, Integer.MAX_VALUE);
 
-        boolean isInStarting11 = true; // Since the user clicked on a starting position
+        boolean isInStarting11 = true;
 
-        // Create the Player object
-        Player player = new Player(
+        return new Player(
                 name,
                 nationality,
                 league,
@@ -340,52 +439,44 @@ public class FootballTeamBuilderApp extends JFrame {
                 price,
                 isInStarting11
         );
-
-        // Retrieve or create the team
-        Team team = currentUser.getTeamByName(teamName);
-        if (team == null) {
-            team = new Team(teamName, selectedFormation.getFormationType()); // Use selectedFormation here
-            currentUser.addTeam(team);
-        }
-
-        // Check if player already exists in the team
-        if (team.hasPlayer(name)) {
-            JOptionPane.showMessageDialog(this, "Player already exists in the team.");
-            return;
-        }
-
-        // Add the player to the team
-        boolean added = team.addPlayer(player);
-        if (!added) {
-            JOptionPane.showMessageDialog(this, "Cannot add player. Team might be full.");
-            return;
-        }
-
-        // Attempt to set player in starting 11
-        boolean setInStarting11 = team.setPlayerInStarting11(player, true);
-        if (!setInStarting11) {
-            JOptionPane.showMessageDialog(this, "Cannot set player to starting 11. Position might be occupied or invalid.");
-            return;
-        }
-
-        // Update the pitch panel with the Player object
-        pitchPanel.updatePlayerCard(positionName, player);
-
-        JOptionPane.showMessageDialog(this, "Player added to " + teamName);
     }
 
+    /**
+     * Retrieves or creates a team with the given name.
+     *
+     * @param teamName the team name
+     * @return the Team object
+     */
+    private Team getOrCreateTeam(String teamName) {
+        Team team = currentUser.getTeamByName(teamName);
+        if (team == null) {
+            team = new Team(teamName, selectedFormation.getFormationType());
+            currentUser.addTeam(team);
+        }
+        return team;
+    }
+
+    /**
+     * Gets integer input from the user within specified bounds.
+     *
+     * @param message the prompt message
+     * @param min     the minimum acceptable value
+     * @param max     the maximum acceptable value
+     * @return the integer value input by the user
+     */
     private int getIntInput(String message, int min, int max) {
         while (true) {
             String inputStr = JOptionPane.showInputDialog(this, message);
             if (inputStr == null) {
-                return min; // Default value if cancelled
+                return min;
             }
             try {
                 int input = Integer.parseInt(inputStr);
                 if (input >= min && input <= max) {
                     return input;
                 } else {
-                    JOptionPane.showMessageDialog(this, "Please enter a value between " + min + " and " + max);
+                    JOptionPane.showMessageDialog(this,
+                            "Please enter a value between " + min + " and " + max);
                 }
             } catch (NumberFormatException ex) {
                 JOptionPane.showMessageDialog(this, "Invalid input. Please enter a number.");
@@ -393,7 +484,9 @@ public class FootballTeamBuilderApp extends JFrame {
         }
     }
 
-    // Save Team Method
+    /**
+     * Saves the current team to the repository.
+     */
     private void saveTeam() {
         String teamName = teamNameField.getText().trim();
         if (teamName.isEmpty()) {
@@ -410,12 +503,16 @@ public class FootballTeamBuilderApp extends JFrame {
             showMainPanel();
         } else {
             int playersNeeded = 11 - (team != null ? team.getStartingPlayers().size() : 0);
-            JOptionPane.showMessageDialog(this, "Cannot save incomplete team! You need to add " +
-                    playersNeeded + " more players to the starting eleven.");
+            JOptionPane.showMessageDialog(this,
+                    "Cannot save incomplete team! You need to add " + playersNeeded
+                            + " more players to the starting eleven.");
         }
     }
 
-    // View User Teams
+    /**
+     * Displays the user's teams.
+     */
+    @SuppressWarnings("methodlength")
     private void viewUserTeams() {
         JPanel userTeamsPanel = new JPanel(new BorderLayout());
         DefaultListModel<String> teamListModel = new DefaultListModel<>();
@@ -436,7 +533,8 @@ public class FootballTeamBuilderApp extends JFrame {
 
             userTeamsPanel.add(backButton, BorderLayout.SOUTH);
 
-            int selection = JOptionPane.showConfirmDialog(this, userTeamsPanel, "Your Teams", JOptionPane.OK_CANCEL_OPTION);
+            int selection = JOptionPane.showConfirmDialog(
+                    this, userTeamsPanel, "Your Teams", JOptionPane.OK_CANCEL_OPTION);
             if (selection == JOptionPane.OK_OPTION) {
                 int selectedIndex = teamList.getSelectedIndex();
                 if (selectedIndex != -1) {
@@ -447,7 +545,10 @@ public class FootballTeamBuilderApp extends JFrame {
         }
     }
 
-    // Search Teams
+    /**
+     * Searches for teams based on user criteria.
+     */
+    @SuppressWarnings("methodlength")
     private void searchTeams() {
         JPanel searchPanel = new JPanel(new GridLayout(3, 2, 10, 10));
         searchPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
@@ -471,18 +572,20 @@ public class FootballTeamBuilderApp extends JFrame {
         searchPanel.add(playerNameLabel);
         searchPanel.add(playerNameField);
 
-        int result = JOptionPane.showConfirmDialog(this, searchPanel, "Search Teams", JOptionPane.OK_CANCEL_OPTION);
+        int result = JOptionPane.showConfirmDialog(
+                this, searchPanel, "Search Teams", JOptionPane.OK_CANCEL_OPTION);
         if (result == JOptionPane.OK_OPTION) {
             double minRating = ratingSlider.getValue();
             String budgetText = budgetField.getText().trim();
             String desiredPlayerName = playerNameField.getText().trim();
 
-            int maxBudget = Integer.MAX_VALUE; // Default value if budget not specified
+            int maxBudget = Integer.MAX_VALUE;
             if (!budgetText.isEmpty()) {
                 try {
                     maxBudget = Integer.parseInt(budgetText);
                 } catch (NumberFormatException e) {
-                    JOptionPane.showMessageDialog(this, "Invalid budget input. Please enter a valid number.");
+                    JOptionPane.showMessageDialog(this,
+                            "Invalid budget input. Please enter a valid number.");
                     return;
                 }
             }
@@ -497,7 +600,9 @@ public class FootballTeamBuilderApp extends JFrame {
         }
     }
 
-    // View Popular Teams
+    /**
+     * Displays popular teams.
+     */
     private void viewPopularTeams() {
         List<Team> popularTeams = repository.getTeamsByPopularity();
         if (popularTeams.isEmpty()) {
@@ -507,14 +612,23 @@ public class FootballTeamBuilderApp extends JFrame {
         }
     }
 
-    // Display Teams Brief
+    /**
+     * Displays a brief overview of the given teams.
+     *
+     * @param teams the list of teams to display
+     * @param title the title of the display
+     */
+    @SuppressWarnings("methodlength")
     private void displayTeamsBrief(List<Team> teams, String title) {
         JPanel teamsPanel = new JPanel(new BorderLayout());
         DefaultListModel<String> teamListModel = new DefaultListModel<>();
 
         for (Team team : teams) {
-            teamListModel.addElement(team.getName() + " | Avg Rating: " + String.format("%.2f", team.getAverageRating()) +
-                    ", Chemistry: " + team.calculateChemistry() + ", Total Price: " + team.getTotalPrice() + ", Likes: " + team.getLikes());
+            teamListModel.addElement(team.getName() + " | Avg Rating: "
+                    + String.format("%.2f", team.getAverageRating())
+                    + ", Chemistry: " + team.calculateChemistry()
+                    + ", Total Price: " + team.getTotalPrice()
+                    + ", Likes: " + team.getLikes());
         }
 
         JList<String> teamList = new JList<>(teamListModel);
@@ -525,7 +639,8 @@ public class FootballTeamBuilderApp extends JFrame {
         backButton.addActionListener(e -> showMainPanel());
         teamsPanel.add(backButton, BorderLayout.SOUTH);
 
-        int selection = JOptionPane.showConfirmDialog(this, teamsPanel, title, JOptionPane.OK_CANCEL_OPTION);
+        int selection = JOptionPane.showConfirmDialog(
+                this, teamsPanel, title, JOptionPane.OK_CANCEL_OPTION);
         if (selection == JOptionPane.OK_OPTION) {
             int selectedIndex = teamList.getSelectedIndex();
             if (selectedIndex != -1) {
@@ -535,12 +650,18 @@ public class FootballTeamBuilderApp extends JFrame {
         }
     }
 
-    // Display Team Details
+    /**
+     * Displays detailed information about a team.
+     *
+     * @param team the team to display
+     */
+    @SuppressWarnings("methodlength")
     private void displayTeamDetails(Team team) {
         StringBuilder details = new StringBuilder();
         details.append("Team Name: ").append(team.getName()).append("\n")
                 .append("Total Price: ").append(team.getTotalPrice()).append("\n")
-                .append("Average Rating: ").append(String.format("%.2f", team.getAverageRating())).append("\n")
+                .append("Average Rating: ").append(String.format("%.2f", team.getAverageRating()))
+                .append("\n")
                 .append("Chemistry: ").append(team.calculateChemistry()).append("\n")
                 .append("Likes: ").append(team.getLikes()).append("\n")
                 .append("Players:\n");
@@ -574,13 +695,7 @@ public class FootballTeamBuilderApp extends JFrame {
         detailPanel.add(scrollPane, BorderLayout.CENTER);
         detailPanel.add(buttonPanel, BorderLayout.SOUTH);
 
-        JOptionPane.showMessageDialog(this, detailPanel, team.getName() + " Details", JOptionPane.INFORMATION_MESSAGE);
-    }
-
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> {
-            FootballTeamBuilderApp app = new FootballTeamBuilderApp();
-            app.setVisible(true);
-        });
+        JOptionPane.showMessageDialog(this, detailPanel,
+                team.getName() + " Details", JOptionPane.INFORMATION_MESSAGE);
     }
 }

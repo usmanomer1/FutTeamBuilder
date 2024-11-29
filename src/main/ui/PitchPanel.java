@@ -66,6 +66,7 @@ public class PitchPanel extends JPanel {
         add(toggleButtonPanel, BorderLayout.NORTH);
     }
 
+    @SuppressWarnings("methodlength")
     private JLayeredPane createPitchPane(ActionListener addPlayerListener, boolean isSubstitutes) {
         JLayeredPane layeredPane = new JLayeredPane();
         layeredPane.setLayout(null); // Use absolute positioning
@@ -80,7 +81,8 @@ public class PitchPanel extends JPanel {
         } else {
             try {
                 pitchImage = ImageIO.read(imageFile);
-                System.out.println("pitch.png loaded successfully with dimensions: " + pitchImage.getWidth() + "x" + pitchImage.getHeight());
+                System.out.println("pitch.png loaded successfully with dimensions: " 
+                        + pitchImage.getWidth() + "x" + pitchImage.getHeight());
             } catch (IOException e) {
                 System.out.println("Error loading pitch image: " + e.getMessage());
                 e.printStackTrace();
@@ -121,8 +123,10 @@ public class PitchPanel extends JPanel {
                 double[] coords = entry.getValue();
 
                 // Convert normalized coordinates (0-6 for x, 0-8 for y) to pixel values with margins
-                int x = LEFT_MARGIN + (int) ((coords[0] / 6.0) * (pitchWidth - LEFT_MARGIN - RIGHT_MARGIN)) - (CARD_WIDTH / 2);
-                int y = TOP_MARGIN + (int) ((coords[1] / 8.0) * (pitchHeight - TOP_MARGIN - BOTTOM_MARGIN)) - (CARD_HEIGHT / 2);
+                int x = LEFT_MARGIN + (int) ((coords[0] / 6.0) 
+                        * (pitchWidth - LEFT_MARGIN - RIGHT_MARGIN)) - (CARD_WIDTH / 2);
+                int y = TOP_MARGIN + (int) ((coords[1] / 8.0) 
+                        * (pitchHeight - TOP_MARGIN - BOTTOM_MARGIN)) - (CARD_HEIGHT / 2);
 
                 JButton btn = new JButton();
                 btn.setBounds(x, y, CARD_WIDTH, CARD_HEIGHT);
@@ -154,15 +158,15 @@ public class PitchPanel extends JPanel {
             int cols = 4;
             int rows = (int) Math.ceil((double) numSubstitutes / cols);
 
-            int xSpacing = (pitchWidth - cols * CARD_WIDTH) / (cols + 1);
-            int ySpacing = (int) (pitchHeight * 0.75); // Place substitutes lower on the panel
+            int x1Spacing = (pitchWidth - cols * CARD_WIDTH) / (cols + 1);
+            int y1Spacing = (int) (pitchHeight * 0.75); // Place substitutes lower on the panel
 
             for (int i = 0; i < numSubstitutes; i++) {
                 int col = i % cols;
                 int row = i / cols;
 
-                int x = xSpacing + col * (CARD_WIDTH + xSpacing);
-                int y = ySpacing + row * (CARD_HEIGHT + ySpacing);
+                int x = x1Spacing + col * (CARD_WIDTH + x1Spacing);
+                int y = y1Spacing + row * (CARD_HEIGHT + y1Spacing);
 
                 JButton btn = new JButton();
                 btn.setBounds(x, y, CARD_WIDTH, CARD_HEIGHT);
@@ -192,6 +196,7 @@ public class PitchPanel extends JPanel {
         return layeredPane;
     }
 
+    @SuppressWarnings("methodlength")
     public void updatePlayerCard(String positionName, Player player) {
         JButton btn = positionButtons.get(positionName.toUpperCase());
         if (btn != null) {
@@ -205,8 +210,10 @@ public class PitchPanel extends JPanel {
                 btn.setBorderPainted(false);
             } else {
                 // Fallback to text if image creation fails
-                String stats = "<html>PAC: " + player.getPace() + "<br>SHO: " + player.getShooting() + "<br>DRI: " + player.getDribbling() +
-                        "<br>DEF: " + player.getDefending() + "<br>PHY: " + player.getPhysicality() + "<br>PAS: " + player.getPassing() + "</html>";
+                String stats = "<html>PAC: " + player.getPace() + "<br>SHO: " 
+                        + player.getShooting() + "<br>DRI: " + player.getDribbling() 
+                        + "<br>DEF: " + player.getDefending() + "<br>PHY: " 
+                        + player.getPhysicality() + "<br>PAS: " + player.getPassing() + "</html>";
                 btn.setText("<html><center>" + player.getName() + "<br>" + stats + "</center></html>");
                 btn.setEnabled(false);
                 btn.setOpaque(true);
@@ -218,6 +225,8 @@ public class PitchPanel extends JPanel {
         }
     }
 
+
+    @SuppressWarnings("methodlength")
     private ImageIcon createPlayerCardIcon(Player player) {
         try {
             // Load the player card template image using file system paths

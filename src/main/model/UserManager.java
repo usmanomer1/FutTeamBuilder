@@ -91,7 +91,7 @@ public class UserManager {
             writer.open();
             writer.writeAllUsers(users.values());
             writer.close();
-            System.out.println("Users saved successfully.");
+          
         } catch (IOException e) {
             System.out.println("Error saving users to file.");
            
@@ -106,7 +106,7 @@ public class UserManager {
         try {
             UserManager loadedManager = reader.read();
             this.users = loadedManager.users;
-            System.out.println("Users loaded successfully.");
+      
         } catch (IOException e) {
             System.out.println("Error loading users from file.");
            

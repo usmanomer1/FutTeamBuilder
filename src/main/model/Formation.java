@@ -53,6 +53,8 @@ public class Formation {
         return formationsData.keySet();
     }
 
+
+    @SuppressWarnings("methodlength")
     public static void loadFormationsData() {
         try {
             String content = new String(Files.readAllBytes(Paths.get(FORMATIONS_FILE)));
